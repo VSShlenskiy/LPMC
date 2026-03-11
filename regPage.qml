@@ -5,7 +5,6 @@ Rectangle {
     width: 906
     height: 508
     color: "#111111"
-    
     Rectangle {
         id: mainWindow
         width: 510

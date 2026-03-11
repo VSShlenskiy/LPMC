@@ -1,5 +1,11 @@
 <RCC>
     <qresource prefix="/qt/qml/lpmc">
         <file>main.qml</file>
+        <file>TitleBar.qml</file>
+        <file>admission.qml</file>
+        <file>generatePasswordPage.qml</file>
+        <file>homePage.qml</file>
+        <file>PasswordItem.qml</file>
+        <file>regPage.qml</file>
     </qresource>
 </RCC>

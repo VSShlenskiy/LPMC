@@ -1,4 +1,4 @@
-import QtQuick 2.9
+п»їimport QtQuick 2.9
 import QtQuick.Controls 2.9
 
 Rectangle {
@@ -90,14 +90,13 @@ Rectangle {
             text: "COPY"
             color: "#FFFFFF"
             anchors.centerIn: parent
-            font.pixelSize: 16
+            font.pixelSize: 10
         }
         
         MouseArea {
             anchors.fill: parent
             onClicked: {
                 console.log("Copy password for", root.service)
-                // добавить копирование
             }
         }
     }

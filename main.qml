@@ -1,21 +1,24 @@
-import QtQuick 2.9
+﻿import QtQuick 2.9
 import QtQuick.Window 2.2
 import QtQuick.Controls 2.9
 
 Window {
+    id: root
     visible: true
-    width: 906; height: 508
-    minimumWidth: 906
-    maximumWidth: 906
-    minimumHeight: 508
-    maximumHeight: 508
+    width: 906; height: 540
+    minimumWidth: 906; maximumWidth: 906
+    minimumHeight: 540; maximumHeight: 540
     title: "LPMC"
     color: "#111111"
-
+    flags: Qt.Window | Qt.FramelessWindowHint | Qt.WindowSystemMenuHint
     StackView {
         id: stackView
         anchors.fill: parent
-        
+        anchors.top: parent.top
+        anchors.topMargin: 32   // ← только здесь, страницы не трогаем
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
         initialItem: Item {
             Text {
                 id: titleText
@@ -100,6 +103,12 @@ Window {
                     border.width: 0 
                 }
             }
-        }
+        }  
+    }
+    TitleBar {
+        id: titleBar
+        targetWindow: root
+        title: "LPMC"
+        z: 100 
     }
 }
