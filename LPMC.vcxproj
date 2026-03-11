@@ -94,6 +94,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="PasswordModel.cpp" />
     <None Include="admission.qml" />
     <None Include="generatePasswordPage.qml" />
     <None Include="homePage.qml" />
@@ -104,6 +105,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\Downloads\icon.jpeg" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="PasswordModel.h" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="FileManager.h" />

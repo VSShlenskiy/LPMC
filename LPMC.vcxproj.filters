@@ -32,6 +32,9 @@
     <None Include="main.qml">
       <Filter>Source Files</Filter>
     </None>
+    <ClCompile Include="PasswordModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="regPage.qml">
@@ -56,6 +59,9 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="PasswordModel.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
     <QtMoc Include="FileManager.h">
       <Filter>Header Files</Filter>
     </QtMoc>

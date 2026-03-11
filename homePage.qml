@@ -239,44 +239,18 @@ Rectangle {
                     }
                 }
                 
-                Flickable {
+                ListView {
                     width: parent.width
                     height: 350
-                    contentHeight: passwordColumn.height
                     clip: true
                     
-                    Column {
-                        id: passwordColumn
-                        width: parent.width
-                        spacing: 15
-                        
-                        PasswordItem {
-                            service: "Gmail"
-                            url: "https://gmail.com"
-                            username: "john.doe@gmail.com"
-                            password: "********"
-                        }
-                        
-                        PasswordItem {
-                            service: "Facebook"
-                            url: "https://facebook.com"
-                            username: "john.doe"
-                            password: "********"
-                        }
-                        
-                        PasswordItem {
-                            service: "Bank Account"
-                            url: "https://bank.com"
-                            username: "+1234567890"
-                            password: "********"
-                        }
-                        
-                        PasswordItem {
-                            service: "GitHub"
-                            url: "https://github.com"
-                            username: "john.doe"
-                            password: "********"
-                        }
+                    model: PasswordModel
+
+                    delegate: PasswordItem {
+                        service: title
+                        username: username
+                        password: password
+                        url: website
                     }
                 }
             }

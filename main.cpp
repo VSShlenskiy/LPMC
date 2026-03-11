@@ -6,6 +6,8 @@
 #include <QIcon>
 #include <QQmlContext>
 #include "FileManager.h"
+#include <PasswordModel.h>
+
 
 int main(int argc, char* argv[])
 {
@@ -24,7 +26,11 @@ int main(int argc, char* argv[])
     if (!appIcon.isNull()) {
         app.setWindowIcon(appIcon);
     }
+    PasswordModel passwordModel;
 
+    engine.rootContext()->setContextProperty("PasswordModel", &passwordModel);
+
+    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     FileManager fileManager;
     engine.rootContext()->setContextProperty("fileManager", &fileManager);
 

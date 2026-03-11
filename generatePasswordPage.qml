@@ -405,8 +405,14 @@ Rectangle {
                         
                         onClicked: {
                             if (titleField.text && usernameField.text && passwordField.text) {
-                                console.log("Saving password for:", titleField.text)
-                                stackView.push("homePage.qml")
+                                PasswordModel.addPassword(
+                                    titleField.text,
+                                    usernameField.text,
+                                    passwordField.text,
+                                    websiteField.text
+                                )
+
+                                stackView.pop()
                             }
                         }
                     }
