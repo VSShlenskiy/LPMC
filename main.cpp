@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <QFileInfo>
 #include <QIcon>
+#include <QQmlContext>
+#include "FileManager.h"
 
 int main(int argc, char* argv[])
 {
@@ -13,10 +15,18 @@ int main(int argc, char* argv[])
 
     QGuiApplication app(argc, argv);
 
+    qDebug() << "Application path:" << QCoreApplication::applicationDirPath();
+
     QQmlApplicationEngine engine;
 
     QString iconPath = ":/icon.png";
     QIcon appIcon(iconPath);
+    if (!appIcon.isNull()) {
+        app.setWindowIcon(appIcon);
+    }
+
+    FileManager fileManager;
+    engine.rootContext()->setContextProperty("fileManager", &fileManager);
 
     engine.addImportPath(".");
     engine.addImportPath("./");

@@ -145,7 +145,7 @@ Rectangle {
             id: confirmPass
             placeholderText: "Confirm your master password"
             echoMode: TextField.Password
-            passwordCharacter: "•"
+            passwordCharacter: "*"
             anchors {
                 top: confirmPassLabel.bottom
                 topMargin: 5
@@ -216,7 +216,13 @@ Rectangle {
             
             onClicked: {
                 if (passwordsMatch && masterPass.text.length >= 8) {
-                    stackView.push("homePage.qml")
+                    if (fileManager.saveMasterPassword(masterPass.text)) {
+                        console.log("Password saved successfully")
+                        stackView.push("homePage.qml")
+                    }       
+                    else {
+                        console.log("Failed to save password")
+                    }
                 }
             }
             
