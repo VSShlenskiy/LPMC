@@ -224,6 +224,14 @@ Rectangle {
                     }
                 }
             }
+            scale: pressed ? 0.9 : 1.0
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 150 
+                    easing.type: Easing.InOutQuad
+                }
+            }
             
             background: Rectangle {
                 color: createButton.enabled ? "#9900FF" : "#333333"

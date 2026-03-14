@@ -290,6 +290,14 @@ Rectangle {
                 onClicked: {
                     stackView.push("generatePasswordPage.qml")
                 }
+                scale: pressed ? 0.9 : 1.0
+
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: 150 
+                        easing.type: Easing.InOutQuad
+                    }
+                }
             }
             
             Button {
@@ -316,6 +324,14 @@ Rectangle {
                 
                 onClicked: {
                     stackView.push("admission.qml")
+                }
+                scale: pressed ? 0.9 : 1.0
+
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: 150 
+                        easing.type: Easing.InOutQuad
+                    }
                 }
             }
         }

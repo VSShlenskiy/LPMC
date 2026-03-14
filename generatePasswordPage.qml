@@ -374,6 +374,14 @@ Rectangle {
                         onClicked: {
                             stackView.pop()
                         }
+                        scale: pressed ? 0.9 : 1.0
+
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: 150 
+                                easing.type: Easing.InOutQuad
+                            }
+                        }
                     }
                     
                     Button {
@@ -415,6 +423,14 @@ Rectangle {
                                 stackView.pop()
                             }
                         }
+                        scale: pressed ? 0.9 : 1.0
+
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: 150 
+                                easing.type: Easing.InOutQuad
+                            }
+                        }   
                     }
                 }
                 

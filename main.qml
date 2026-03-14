@@ -85,7 +85,12 @@ Window {
                 }
                 
                 onClicked: {
-                    stackView.push("regPage.qml")
+                    if(fileManager.isMasterPasswordSet()){
+                        stackView.push("admission.qml")
+                    }
+                    else{
+                        stackView.push("regPage.qml")
+                    }
                 }
                 
                 scale: pressed ? 0.9 : 1.0

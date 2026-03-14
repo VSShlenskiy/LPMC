@@ -168,6 +168,14 @@ Rectangle {
                     letterSpacing: 1
                 }
             }
+            scale: pressed ? 0.9 : 1.0
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: 150 
+                    easing.type: Easing.InOutQuad
+                }
+            }
             
             states: []
         }
@@ -228,7 +236,7 @@ Rectangle {
     function attemptUnlock() {
         // Здесь должна быть проверка мастер-пароля
         
-        if (masterPass.text === "12345678") {
+        if (fileManager.verifyMasterPassword(masterPass.text)) {
             stackView.push("homePage.qml")
         } else {
             errorText.visible = true
