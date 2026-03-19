@@ -419,9 +419,18 @@ Rectangle {
                                     passwordField.text,
                                     websiteField.text
                                 )
-
-                                stackView.pop()
                             }
+
+                            if (passwordField.text.length >= 8) {
+                                if (fileManager.savePasswordField(passwordField.text)) {
+                                    console.log("Password saved successfully")
+                                    stackView.pop()
+                                }       
+                                else {
+                                    console.log("Failed to save password")
+                                }
+                            }
+
                         }
                         scale: pressed ? 0.9 : 1.0
 

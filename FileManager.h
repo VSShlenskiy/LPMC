@@ -149,6 +149,38 @@ public:
         return true;
     }
 
+    Q_INVOKABLE bool savePasswordField(const QString& password)
+    {
+        QString filePath = QCoreApplication::applicationDirPath() + "/passwords.dat";
+
+        QFile file(filePath);
+        if (!file.open(QIODevice::WriteOnly))
+            return false;
+
+        QByteArray key = QCryptographicHash::hash(
+            "super_secret_key",
+            QCryptographicHash::Sha256
+        );
+
+        QByteArray iv;
+        QByteArray tag;
+
+        QByteArray encrypted = encryptAES256GCM(
+            password.toUtf8(),
+            key,
+            iv,
+            tag
+        );
+
+        file.write(iv);
+        file.write(tag);
+        file.write(encrypted);
+
+        file.close();
+
+        return true;
+    }
+
 
     Q_INVOKABLE bool verifyMasterPassword(const QString& password)
     {
