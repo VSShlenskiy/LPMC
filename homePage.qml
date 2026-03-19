@@ -243,7 +243,7 @@ Rectangle {
                     width: parent.width
                     height: 350
                     clip: true
-                    
+                    spacing: 12
                     model: PasswordModel
 
                     delegate: PasswordItem {
