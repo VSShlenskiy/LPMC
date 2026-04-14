@@ -69,6 +69,7 @@ Rectangle {
                 
                 Item { width: 1; height: 10 }
                 
+                // ── Title ────────────────────────────────────────────────
                 Column {
                     width: parent.width
                     spacing: 5
@@ -76,11 +77,7 @@ Rectangle {
                     Text {
                         text: "Title *"
                         color: "#CCCCCC"
-                        font {
-                            family: "Roboto"
-                            pixelSize: 13
-                            bold: true
-                        }
+                        font { family: "Roboto"; pixelSize: 13; bold: true }
                     }
                     
                     TextField {
@@ -88,24 +85,20 @@ Rectangle {
                         width: parent.width
                         height: 48
                         placeholderText: "Gmail"
-                        
                         background: Rectangle {
                             color: "#1E1E1E"
                             radius: 10
                             border.color: parent.focus ? "#9900FF" : "#333333"
                             border.width: 1
                         }
-                        
                         color: "#FFFFFF"
                         placeholderTextColor: "#666666"
                         leftPadding: 15
-                        font {
-                            family: "Roboto"
-                            pixelSize: 14
-                        }
+                        font { family: "Roboto"; pixelSize: 14 }
                     }
                 }
                 
+                // ── Username / Email ─────────────────────────────────────
                 Column {
                     width: parent.width
                     spacing: 5
@@ -113,11 +106,7 @@ Rectangle {
                     Text {
                         text: "Username/Email *"
                         color: "#CCCCCC"
-                        font {
-                            family: "Roboto"
-                            pixelSize: 13
-                            bold: true
-                        }
+                        font { family: "Roboto"; pixelSize: 13; bold: true }
                     }
                     
                     TextField {
@@ -125,24 +114,20 @@ Rectangle {
                         width: parent.width
                         height: 48
                         placeholderText: "user@example.com"
-                        
                         background: Rectangle {
                             color: "#1E1E1E"
                             radius: 10
                             border.color: parent.focus ? "#9900FF" : "#333333"
                             border.width: 1
                         }
-                        
                         color: "#FFFFFF"
                         placeholderTextColor: "#666666"
                         leftPadding: 15
-                        font {
-                            family: "Roboto"
-                            pixelSize: 14
-                        }
+                        font { family: "Roboto"; pixelSize: 14 }
                     }
                 }
                 
+                // ── Password ─────────────────────────────────────────────
                 Column {
                     width: parent.width
                     spacing: 5
@@ -150,11 +135,7 @@ Rectangle {
                     Text {
                         text: "Password *"
                         color: "#CCCCCC"
-                        font {
-                            family: "Roboto"
-                            pixelSize: 13
-                            bold: true
-                        }
+                        font { family: "Roboto"; pixelSize: 13; bold: true }
                     }
                     
                     Row {
@@ -167,23 +148,19 @@ Rectangle {
                             height: 48
                             placeholderText: "12345678"
                             echoMode: TextField.Normal
-                            
                             background: Rectangle {
                                 color: "#1E1E1E"
                                 radius: 10
                                 border.color: parent.focus ? "#9900FF" : "#333333"
                                 border.width: 1
                             }
-                            
                             color: "#FFFFFF"
                             placeholderTextColor: "#666666"
                             leftPadding: 15
-                            font {
-                                family: "Roboto"
-                                pixelSize: 14
-                            }
+                            font { family: "Roboto"; pixelSize: 14 }
                         }
                         
+                        // Generate random password button
                         Rectangle {
                             width: 60
                             height: 48
@@ -194,10 +171,7 @@ Rectangle {
                                 text: "?"
                                 color: "#FFFFFF"
                                 anchors.centerIn: parent
-                                font {
-                                    pixelSize: 24
-                                    bold: true
-                                }
+                                font { pixelSize: 24; bold: true }
                             }
                             
                             MouseArea {
@@ -210,6 +184,7 @@ Rectangle {
                     }
                 }
                 
+                // ── Website ──────────────────────────────────────────────
                 Column {
                     width: parent.width
                     spacing: 5
@@ -217,11 +192,7 @@ Rectangle {
                     Text {
                         text: "Website"
                         color: "#CCCCCC"
-                        font {
-                            family: "Roboto"
-                            pixelSize: 13
-                            bold: true
-                        }
+                        font { family: "Roboto"; pixelSize: 13; bold: true }
                     }
                     
                     TextField {
@@ -229,24 +200,20 @@ Rectangle {
                         width: parent.width
                         height: 48
                         placeholderText: "https://example.com"
-                        
                         background: Rectangle {
                             color: "#1E1E1E"
                             radius: 10
                             border.color: parent.focus ? "#9900FF" : "#333333"
                             border.width: 1
                         }
-                        
                         color: "#FFFFFF"
                         placeholderTextColor: "#666666"
                         leftPadding: 15
-                        font {
-                            family: "Roboto"
-                            pixelSize: 14
-                        }
+                        font { family: "Roboto"; pixelSize: 14 }
                     }
                 }
                 
+                // ── Category ─────────────────────────────────────────────
                 Column {
                     width: parent.width
                     spacing: 5
@@ -254,18 +221,13 @@ Rectangle {
                     Text {
                         text: "Category"
                         color: "#CCCCCC"
-                        font {
-                            family: "Roboto"
-                            pixelSize: 13
-                            bold: true
-                        }
+                        font { family: "Roboto"; pixelSize: 13; bold: true }
                     }
                     
                     ComboBox {
                         id: categoryCombo
                         width: parent.width
                         height: 48
-                        
                         model: ["General", "Work", "Social", "Banking", "Shopping", "Other"]
                         
                         background: Rectangle {
@@ -274,7 +236,6 @@ Rectangle {
                             border.color: parent.focus ? "#9900FF" : "#333333"
                             border.width: 1
                         }
-                        
                         contentItem: Text {
                             text: categoryCombo.displayText
                             color: "#FFFFFF"
@@ -282,7 +243,6 @@ Rectangle {
                             verticalAlignment: Text.AlignVCenter
                             font.pixelSize: 14
                         }
-                        
                         indicator: Text {
                             text: "^"
                             color: "#666666"
@@ -291,7 +251,6 @@ Rectangle {
                             anchors.verticalCenter: parent.verticalCenter
                             font.pixelSize: 16
                         }
-                        
                         delegate: ItemDelegate {
                             width: categoryCombo.width
                             contentItem: Text {
@@ -304,22 +263,18 @@ Rectangle {
                                 color: parent.highlighted ? "#2A2A2A" : "#1E1E1E"
                             }
                         }
-                        
                         popup: Popup {
                             y: categoryCombo.height - 1
                             width: categoryCombo.width
                             implicitHeight: contentItem.implicitHeight
                             padding: 1
-                            
                             contentItem: ListView {
                                 clip: true
                                 implicitHeight: 200
                                 model: categoryCombo.delegateModel
                                 currentIndex: categoryCombo.highlightedIndex
-                                
                                 ScrollIndicator.vertical: ScrollIndicator { }
                             }
-                            
                             background: Rectangle {
                                 color: "#1E1E1E"
                                 border.color: "#333333"
@@ -334,13 +289,20 @@ Rectangle {
                     text: "* Required fields"
                     color: "#666666"
                     anchors.right: parent.right
-                    font {
-                        family: "Roboto"
-                        pixelSize: 11
-                        italic: true
-                    }
+                    font { family: "Roboto"; pixelSize: 11; italic: true }
                 }
                 
+                // ── Error message ────────────────────────────────────────
+                Text {
+                    id: errorText
+                    text: ""
+                    color: "#FF4444"
+                    visible: text.length > 0
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    font { family: "Roboto"; pixelSize: 12 }
+                }
+                
+                // ── Buttons ──────────────────────────────────────────────
                 Row {
                     anchors.right: parent.right
                     spacing: 15
@@ -349,97 +311,72 @@ Rectangle {
                         text: "Cancel"
                         width: 110
                         height: 48
-                        
                         background: Rectangle {
                             color: "#2A2A2A"
                             radius: 10
                             border.color: "#444444"
                             border.width: 1
-                            
                             opacity: parent.pressed ? 0.8 : 1.0
                         }
-                        
                         contentItem: Text {
                             text: parent.text
                             color: "#FFFFFF"
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
-                            font {
-                                family: "Roboto"
-                                pixelSize: 15
-                                bold: true
-                            }
+                            font { family: "Roboto"; pixelSize: 15; bold: true }
                         }
-                        
-                        onClicked: {
-                            stackView.pop()
-                        }
+                        onClicked: stackView.pop()
                         scale: pressed ? 0.9 : 1.0
-
-                        Behavior on scale {
-                            NumberAnimation {
-                                duration: 150 
-                                easing.type: Easing.InOutQuad
-                            }
-                        }
+                        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.InOutQuad } }
                     }
                     
                     Button {
+                        id: addButton
                         text: "Add"
                         width: 110
                         height: 48
-                        enabled: titleField.text.length > 0 && 
-                                 usernameField.text.length > 0 && 
+                        enabled: titleField.text.length > 0 &&
+                                 usernameField.text.length > 0 &&
                                  passwordField.text.length > 0
                         
                         background: Rectangle {
                             color: parent.enabled ? "#9900FF" : "#333333"
                             radius: 10
-                            
                             opacity: parent.pressed ? 0.8 : 1.0
                         }
-                        
                         contentItem: Text {
                             text: parent.text
                             color: "white"
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
-                            font {
-                                family: "Roboto"
-                                pixelSize: 15
-                                bold: true
-                            }
+                            font { family: "Roboto"; pixelSize: 15; bold: true }
                         }
                         
                         onClicked: {
-                            if (titleField.text && usernameField.text && passwordField.text) {
-                                PasswordModel.addPassword(
-                                    titleField.text,
-                                    usernameField.text,
-                                    passwordField.text,
-                                    websiteField.text
-                                )
-                            }
+                            errorText.text = ""
 
-                            if (passwordField.text.length >= 8) {
-                                if (fileManager.savePasswordField(passwordField.text)) {
-                                    console.log("Password saved successfully")
-                                    stackView.pop()
-                                }       
-                                else {
-                                    console.log("Failed to save password")
-                                }
-                            }
+                            // 1. Add entry to the in-memory model
+                            PasswordModel.addPassword(
+                                titleField.text,
+                                usernameField.text,
+                                passwordField.text,
+                                websiteField.text
+                            )
 
+                            // 2. Serialize the full model and save to disk (encrypted)
+                            var json = PasswordModel.toJson()
+                            if (fileManager.savePasswords(json)) {
+                                console.log("Vault saved successfully. Entries:", PasswordModel.count())
+                                stackView.pop()
+                            } else {
+                                // Roll back the just-added entry on save failure
+                                PasswordModel.removePassword(PasswordModel.count() - 1)
+                                errorText.text = "Failed to save. Check disk permissions."
+                            }
                         }
+                        
                         scale: pressed ? 0.9 : 1.0
-
-                        Behavior on scale {
-                            NumberAnimation {
-                                duration: 150 
-                                easing.type: Easing.InOutQuad
-                            }
-                        }   
+                        Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.InOutQuad } }
                     }
                 }
                 
@@ -449,15 +386,12 @@ Rectangle {
     }
     
     function generateStrongPassword() {
-        var length = 16
+        var length  = 16
         var charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}[]|:;<>,.?/~"
         var password = ""
-        
         for (var i = 0; i < length; i++) {
-            var randomIndex = Math.floor(Math.random() * charset.length)
-            password += charset[randomIndex]
+            password += charset[Math.floor(Math.random() * charset.length)]
         }
-        
         return password
     }
 }

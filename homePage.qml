@@ -5,7 +5,13 @@ Rectangle {
     width: 906
     height: 508
     color: "#0A0A0A"
-    
+
+    // Load persisted passwords as soon as this page appears
+    Component.onCompleted: {
+        var json = fileManager.loadPasswords()
+        PasswordModel.fromJson(json)
+    }
+
     Rectangle {
         id: topBar
         width: parent.width
@@ -21,15 +27,10 @@ Rectangle {
                 leftMargin: 30
                 verticalCenter: parent.verticalCenter
             }
-            font {
-                family: "Roboto"
-                pixelSize: 24
-                bold: true
-            }
+            font { family: "Roboto"; pixelSize: 24; bold: true }
         }
         
         Text {
-            id: managerText
             text: "Password Manager"
             color: "#888888"
             anchors {
@@ -38,14 +39,10 @@ Rectangle {
                 bottom: logoText.bottom
                 bottomMargin: 5
             }
-            font {
-                family: "Roboto"
-                pixelSize: 12
-            }
+            font { family: "Roboto"; pixelSize: 12 }
         }
         
         Text {
-            id: allPasswordsTitle
             text: "ALL PASSWORDS"
             color: "#FFFFFF"
             anchors {
@@ -53,12 +50,7 @@ Rectangle {
                 leftMargin: 150
                 verticalCenter: parent.verticalCenter
             }
-            font {
-                family: "Roboto"
-                pixelSize: 20
-                bold: true
-                letterSpacing: 1
-            }
+            font { family: "Roboto"; pixelSize: 20; bold: true; letterSpacing: 1 }
         }
     }
     
@@ -72,6 +64,7 @@ Rectangle {
         }
         color: "#0A0A0A"
         
+        // ── Left panel ────────────────────────────────────────────────────
         Rectangle {
             id: leftPanel
             width: 200
@@ -96,19 +89,12 @@ Rectangle {
                 Text {
                     text: "Categories"
                     color: "#FFFFFF"
-                    font {
-                        family: "Roboto"
-                        pixelSize: 14
-                        bold: true
-                    }
+                    font { family: "Roboto"; pixelSize: 14; bold: true }
                 }
                 
-                Rectangle {
-                    width: parent.width
-                    height: 1
-                    color: "#333333"
-                }
+                Rectangle { width: parent.width; height: 1; color: "#333333" }
                 
+                // "All" category with live count badge
                 Rectangle {
                     width: parent.width
                     height: 30
@@ -118,15 +104,8 @@ Rectangle {
                     Text {
                         text: "All"
                         color: "#FFFFFF"
-                        anchors {
-                            left: parent.left
-                            leftMargin: 10
-                            verticalCenter: parent.verticalCenter
-                        }
-                        font {
-                            family: "Roboto"
-                            pixelSize: 13
-                        }
+                        anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
+                        font { family: "Roboto"; pixelSize: 13 }
                     }
                     
                     Rectangle {
@@ -134,62 +113,26 @@ Rectangle {
                         height: 20
                         radius: 10
                         color: "#9900FF"
-                        anchors {
-                            right: parent.right
-                            rightMargin: 10
-                            verticalCenter: parent.verticalCenter
-                        }
+                        anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                         
                         Text {
-                            text: "4"
+                            // Dynamically reflects the actual number of saved passwords
+                            text: PasswordModel.count()
                             color: "#FFFFFF"
                             anchors.centerIn: parent
-                            font {
-                                pixelSize: 11
-                                bold: true
-                            }
+                            font { pixelSize: 11; bold: true }
                         }
                     }
                 }
                 
-                Text {
-                    text: "General"
-                    color: "#888888"
-                    font {
-                        family: "Roboto"
-                        pixelSize: 13
-                    }
-                }
-                
-                Text {
-                    text: "Work"
-                    color: "#888888"
-                    font {
-                        family: "Roboto"
-                        pixelSize: 13
-                    }
-                }
-                
-                Text {
-                    text: "Social"
-                    color: "#888888"
-                    font {
-                        family: "Roboto"
-                        pixelSize: 13
-                    }
-                }
-                
-                Text {
-                    text: "Banking"
-                    color: "#888888"
-                    font {
-                        family: "Roboto"
-                        pixelSize: 13
-                    }
-                }
+                Text { text: "General"; color: "#888888"; font { family: "Roboto"; pixelSize: 13 } }
+                Text { text: "Work";    color: "#888888"; font { family: "Roboto"; pixelSize: 13 } }
+                Text { text: "Social";  color: "#888888"; font { family: "Roboto"; pixelSize: 13 } }
+                Text { text: "Banking"; color: "#888888"; font { family: "Roboto"; pixelSize: 13 } }
             }
         }
         
+        // ── Right panel ───────────────────────────────────────────────────
         Rectangle {
             id: rightPanel
             anchors {
@@ -212,6 +155,7 @@ Rectangle {
                 }
                 spacing: 20
                 
+                // Search bar
                 Rectangle {
                     width: parent.width
                     height: 40
@@ -239,23 +183,37 @@ Rectangle {
                     }
                 }
                 
+                // Password list
                 ListView {
+                    id: passwordList
                     width: parent.width
                     height: 350
                     clip: true
                     spacing: 12
                     model: PasswordModel
 
+                    // Empty-state placeholder
+                    Text {
+                        anchors.centerIn: parent
+                        text: "No passwords saved yet.\nClick \"ADD PASSWORD\" to get started."
+                        color: "#555555"
+                        horizontalAlignment: Text.AlignHCenter
+                        font { family: "Roboto"; pixelSize: 14 }
+                        visible: passwordList.count === 0
+                        lineHeight: 1.6
+                    }
+
                     delegate: PasswordItem {
-                        service: title
-                        username: username
-                        password: password
-                        url: website
+                        service:  model.title
+                        username: model.username
+                        password: model.password
+                        url:      model.website
                     }
                 }
             }
         }
         
+        // ── Action buttons ─────────────────────────────────────────────────
         Row {
             anchors {
                 bottom: parent.bottom
@@ -269,70 +227,34 @@ Rectangle {
                 text: "ADD PASSWORD"
                 width: 150
                 height: 40
-                
-                background: Rectangle {
-                    color: "#9900FF"
-                    radius: 8
-                }
-                
+                background: Rectangle { color: "#9900FF"; radius: 8 }
                 contentItem: Text {
                     text: parent.text
                     color: "#FFFFFF"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    font {
-                        family: "Roboto"
-                        pixelSize: 12
-                        bold: true
-                    }
+                    font { family: "Roboto"; pixelSize: 12; bold: true }
                 }
-                
-                onClicked: {
-                    stackView.push("generatePasswordPage.qml")
-                }
+                onClicked: stackView.push("generatePasswordPage.qml")
                 scale: pressed ? 0.9 : 1.0
-
-                Behavior on scale {
-                    NumberAnimation {
-                        duration: 150 
-                        easing.type: Easing.InOutQuad
-                    }
-                }
+                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.InOutQuad } }
             }
             
             Button {
                 text: "LOCK VAULT"
                 width: 150
                 height: 40
-                
-                background: Rectangle {
-                    color: "#333333"
-                    radius: 8
-                }
-                
+                background: Rectangle { color: "#333333"; radius: 8 }
                 contentItem: Text {
                     text: parent.text
                     color: "#FFFFFF"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    font {
-                        family: "Roboto"
-                        pixelSize: 12
-                        bold: true
-                    }
+                    font { family: "Roboto"; pixelSize: 12; bold: true }
                 }
-                
-                onClicked: {
-                    stackView.push("admission.qml")
-                }
+                onClicked: stackView.push("admission.qml")
                 scale: pressed ? 0.9 : 1.0
-
-                Behavior on scale {
-                    NumberAnimation {
-                        duration: 150 
-                        easing.type: Easing.InOutQuad
-                    }
-                }
+                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.InOutQuad } }
             }
         }
     }
