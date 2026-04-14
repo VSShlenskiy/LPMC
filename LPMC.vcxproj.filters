@@ -55,6 +55,9 @@
     <None Include="TitleBar.qml">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="settingPage.qml">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\..\Downloads\icon.jpeg">

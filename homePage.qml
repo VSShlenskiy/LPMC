@@ -52,6 +52,36 @@ Rectangle {
             }
             font { family: "Roboto"; pixelSize: 20; bold: true; letterSpacing: 1 }
         }
+        // Settings button
+        Rectangle {
+            id: settingsBtn
+            width: 40
+            height: 40
+            radius: 8
+            color: settingsMouse.containsMouse ? "#222222" : "transparent"
+            anchors {
+                right: parent.right
+                rightMargin: 20
+                verticalCenter: parent.verticalCenter
+            }
+            Behavior on color { ColorAnimation { duration: 150 } }
+
+            Text {
+                text: "\u2699"
+                color: settingsMouse.containsMouse ? "#9900FF" : "#888888"
+                font.pixelSize: 22
+                anchors.centerIn: parent
+                Behavior on color { ColorAnimation { duration: 150 } }
+            }
+
+            MouseArea {
+                id: settingsMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: stackView.push("settingPage.qml")
+            }
+        }
     }
     
     Rectangle {

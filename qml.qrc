@@ -7,5 +7,6 @@
         <file>homePage.qml</file>
         <file>PasswordItem.qml</file>
         <file>regPage.qml</file>
+        <file>settingPage.qml</file>
     </qresource>
 </RCC>

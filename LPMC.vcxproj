@@ -109,6 +109,7 @@
     <None Include="homePage.qml" />
     <None Include="PasswordItem.qml" />
     <None Include="regPage.qml" />
+    <None Include="settingPage.qml" />
     <None Include="TitleBar.qml" />
     <QtRcc Include="qml.qrc" />
     <None Include="main.qml" />
