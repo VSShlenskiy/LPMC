@@ -1,5 +1,5 @@
 <RCC>
-    <qresource prefix="/qt/qml/lpmc">
+    <qresource prefix="/">
         <file>main.qml</file>
         <file>TitleBar.qml</file>
         <file>admission.qml</file>

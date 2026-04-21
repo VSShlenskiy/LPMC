@@ -1,13 +1,12 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
-#include <QDir>
-#include <QDebug>
-#include <QFileInfo>
-#include <QIcon>
 #include <QQmlContext>
-#include "FileManager.h"
-#include <PasswordModel.h>
+#include <QIcon>
+#include <QDebug>
 
+#include "FileManager.h"
+#include "PasswordModel.h"
+#include "AppSettings.h"
 
 int main(int argc, char* argv[])
 {
@@ -16,33 +15,28 @@ int main(int argc, char* argv[])
 #endif
 
     QGuiApplication app(argc, argv);
+    app.setWindowIcon(QIcon(":/icon.png"));
 
-    qDebug() << "Application path:" << QCoreApplication::applicationDirPath();
+    // ── Backend objects ──────────────────────────────────────────────────────
+    FileManager   fileManager;
+    PasswordModel passwordModel;
+    AppSettings   appSettings;
 
+    // ── QML engine ───────────────────────────────────────────────────────────
     QQmlApplicationEngine engine;
 
-    QString iconPath = ":/icon.png";
-    QIcon appIcon(iconPath);
-    if (!appIcon.isNull()) {
-        app.setWindowIcon(appIcon);
-    }
-    PasswordModel passwordModel;
+    // Все контекстные свойства ДОЛЖНЫ быть установлены ДО загрузки QML
+    engine.rootContext()->setContextProperty("fileManager",    &fileManager);
+    engine.rootContext()->setContextProperty("PasswordModel",  &passwordModel);
+    engine.rootContext()->setContextProperty("AppSettings",    &appSettings);
 
-    engine.rootContext()->setContextProperty("PasswordModel", &passwordModel);
-
+    // Единственная загрузка QML через ресурс
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
-    FileManager fileManager;
-    engine.rootContext()->setContextProperty("fileManager", &fileManager);
 
-    engine.addImportPath(".");
-    engine.addImportPath("./");
-
-    qDebug() << "Import paths:" << engine.importPathList();
-
-    engine.load(QUrl::fromLocalFile("main.qml"));
-
-    if (engine.rootObjects().isEmpty())
+    if (engine.rootObjects().isEmpty()) {
+        qCritical() << "Failed to load main.qml";
         return -1;
+    }
 
     return app.exec();
 }

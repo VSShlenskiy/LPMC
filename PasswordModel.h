@@ -18,30 +18,27 @@ class PasswordModel : public QAbstractListModel
 
 public:
     enum Roles {
-        TitleRole = Qt::UserRole + 1,
+        TitleRole    = Qt::UserRole + 1,
         UsernameRole,
         PasswordRole,
         WebsiteRole
     };
 
-    PasswordModel(QObject* parent = nullptr);
+    explicit PasswordModel(QObject* parent = nullptr);
 
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+    int     rowCount(const QModelIndex& parent = QModelIndex()) const override;
     QVariant data(const QModelIndex& index, int role) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-    Q_INVOKABLE void addPassword(QString title,
-                                  QString username,
-                                  QString password,
-                                  QString website);
+    Q_INVOKABLE void addPassword(const QString& title,
+                                  const QString& username,
+                                  const QString& password,
+                                  const QString& website);
 
     Q_INVOKABLE void removePassword(int index);
 
-    /** Serialize current list → JSON string for FileManager::savePasswords() */
     Q_INVOKABLE QString toJson() const;
-
-    /** Deserialize JSON string from FileManager::loadPasswords() and replace list */
-    Q_INVOKABLE void fromJson(const QString& jsonStr);
+    Q_INVOKABLE void    fromJson(const QString& jsonStr);
 
     Q_INVOKABLE int count() const { return items.size(); }
 
@@ -49,4 +46,4 @@ private:
     QList<PasswordItem> items;
 };
 
-#endif
+#endif // PASSWORDMODEL_H

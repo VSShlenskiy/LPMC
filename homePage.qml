@@ -1,74 +1,53 @@
-import QtQuick 2.9
-import QtQuick.Controls 2.9
+import QtQuick 2.15
+import QtQuick.Controls 2.15
 
 Rectangle {
     width: 906
     height: 508
     color: "#0A0A0A"
 
-    // Load persisted passwords as soon as this page appears
-    Component.onCompleted: {
-        var json = fileManager.loadPasswords()
-        PasswordModel.fromJson(json)
-    }
-
+    // ── Top bar ───────────────────────────────────────────────────────────────
     Rectangle {
         id: topBar
         width: parent.width
         height: 80
         color: "#111111"
-        
+
         Text {
             id: logoText
             text: "LPMC"
             color: "#9900FF"
-            anchors {
-                left: parent.left
-                leftMargin: 30
-                verticalCenter: parent.verticalCenter
-            }
+            anchors { left: parent.left; leftMargin: 30; verticalCenter: parent.verticalCenter }
             font { family: "Roboto"; pixelSize: 24; bold: true }
         }
-        
+
         Text {
             text: "Password Manager"
-            color: "#888888"
-            anchors {
-                left: logoText.right
-                leftMargin: 10
-                bottom: logoText.bottom
-                bottomMargin: 5
-            }
-            font { family: "Roboto"; pixelSize: 12 }
+            color: "#555555"
+            anchors { left: logoText.right; leftMargin: 10; bottom: logoText.bottom; bottomMargin: 4 }
+            font { family: "Roboto"; pixelSize: 11 }
         }
-        
+
         Text {
             text: "ALL PASSWORDS"
             color: "#FFFFFF"
-            anchors {
-                left: logoText.right
-                leftMargin: 150
-                verticalCenter: parent.verticalCenter
-            }
-            font { family: "Roboto"; pixelSize: 20; bold: true; letterSpacing: 1 }
+            anchors { left: parent.left; leftMargin: 240; verticalCenter: parent.verticalCenter }
+            font { family: "Roboto"; pixelSize: 18; bold: true; letterSpacing: 1 }
         }
+
         // Settings button
         Rectangle {
             id: settingsBtn
-            width: 40
-            height: 40
+            width: 38
+            height: 38
             radius: 8
             color: settingsMouse.containsMouse ? "#222222" : "transparent"
-            anchors {
-                right: parent.right
-                rightMargin: 20
-                verticalCenter: parent.verticalCenter
-            }
+            anchors { right: parent.right; rightMargin: 20; verticalCenter: parent.verticalCenter }
             Behavior on color { ColorAnimation { duration: 150 } }
 
             Text {
                 text: "\u2699"
-                color: settingsMouse.containsMouse ? "#9900FF" : "#888888"
+                color: settingsMouse.containsMouse ? "#9900FF" : "#666666"
                 font.pixelSize: 22
                 anchors.centerIn: parent
                 Behavior on color { ColorAnimation { duration: 150 } }
@@ -79,74 +58,59 @@ Rectangle {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: stackView.push("settingPage.qml")
+                onClicked: stackView.push("qrc:/settingPage.qml")
             }
         }
     }
-    
+
+    // ── Content ───────────────────────────────────────────────────────────────
     Rectangle {
         id: contentArea
-        anchors {
-            top: topBar.bottom
-            bottom: parent.bottom
-            left: parent.left
-            right: parent.right
-        }
+        anchors { top: topBar.bottom; bottom: parent.bottom; left: parent.left; right: parent.right }
         color: "#0A0A0A"
-        
-        // ── Left panel ────────────────────────────────────────────────────
+
+        // ── Left panel (categories) ───────────────────────────────────────────
         Rectangle {
             id: leftPanel
-            width: 200
-            anchors {
-                top: parent.top
-                bottom: parent.bottom
-                left: parent.left
-                margins: 20
-            }
+            width: 190
+            anchors { top: parent.top; bottom: parent.bottom; left: parent.left; margins: 16 }
             color: "#111111"
             radius: 10
-            
+
             Column {
-                anchors {
-                    top: parent.top
-                    left: parent.left
-                    right: parent.right
-                    margins: 15
-                }
-                spacing: 15
-                
+                anchors { top: parent.top; left: parent.left; right: parent.right; margins: 14 }
+                spacing: 12
+
                 Text {
                     text: "Categories"
                     color: "#FFFFFF"
-                    font { family: "Roboto"; pixelSize: 14; bold: true }
+                    font { family: "Roboto"; pixelSize: 13; bold: true }
                 }
-                
-                Rectangle { width: parent.width; height: 1; color: "#333333" }
-                
-                // "All" category with live count badge
+
+                Rectangle { width: parent.width; height: 1; color: "#2A2A2A" }
+
+                // "All" with live count
                 Rectangle {
                     width: parent.width
-                    height: 30
-                    color: "#333333"
-                    radius: 5
-                    
+                    height: 32
+                    color: "#2A2A2A"
+                    radius: 6
+
                     Text {
                         text: "All"
                         color: "#FFFFFF"
                         anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
                         font { family: "Roboto"; pixelSize: 13 }
                     }
-                    
+
                     Rectangle {
-                        width: 20
-                        height: 20
-                        radius: 10
+                        width: 22
+                        height: 22
+                        radius: 11
                         color: "#9900FF"
-                        anchors { right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
-                        
+                        anchors { right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
+
                         Text {
-                            // Dynamically reflects the actual number of saved passwords
                             text: PasswordModel.count()
                             color: "#FFFFFF"
                             anchors.centerIn: parent
@@ -154,83 +118,88 @@ Rectangle {
                         }
                     }
                 }
-                
-                Text { text: "General"; color: "#888888"; font { family: "Roboto"; pixelSize: 13 } }
-                Text { text: "Work";    color: "#888888"; font { family: "Roboto"; pixelSize: 13 } }
-                Text { text: "Social";  color: "#888888"; font { family: "Roboto"; pixelSize: 13 } }
-                Text { text: "Banking"; color: "#888888"; font { family: "Roboto"; pixelSize: 13 } }
+
+                Repeater {
+                    model: ["General", "Work", "Social", "Banking"]
+                    Text {
+                        text: modelData
+                        color: "#666666"
+                        font { family: "Roboto"; pixelSize: 13 }
+                    }
+                }
             }
         }
-        
-        // ── Right panel ───────────────────────────────────────────────────
+
+        // ── Right panel (password list) ───────────────────────────────────────
         Rectangle {
             id: rightPanel
             anchors {
-                top: parent.top
-                bottom: parent.bottom
-                left: leftPanel.right
-                right: parent.right
-                margins: 20
-                leftMargin: 10
+                top: parent.top; bottom: actionRow.top
+                left: leftPanel.right; right: parent.right
+                topMargin: 16; bottomMargin: 8
+                leftMargin: 10; rightMargin: 16
             }
             color: "#111111"
             radius: 10
-            
+
             Column {
-                anchors {
-                    top: parent.top
-                    left: parent.left
-                    right: parent.right
-                    margins: 20
-                }
-                spacing: 20
-                
+                anchors { top: parent.top; left: parent.left; right: parent.right; margins: 16 }
+                spacing: 14
+
                 // Search bar
                 Rectangle {
                     width: parent.width
-                    height: 40
+                    height: 38
                     color: "#1E1E1E"
                     radius: 8
-                    
+                    border.color: searchInput.activeFocus ? "#9900FF" : "#2A2A2A"
+                    border.width: 1
+
+                    Text {
+                        text: "\uD83D\uDD0D"
+                        color: "#555555"
+                        font.pixelSize: 14
+                        anchors { left: parent.left; leftMargin: 10; verticalCenter: parent.verticalCenter }
+                    }
+
                     TextInput {
                         id: searchInput
                         anchors {
-                            left: parent.left
-                            right: parent.right
+                            left: parent.left; right: parent.right
                             verticalCenter: parent.verticalCenter
-                            margins: 12
+                            leftMargin: 32; rightMargin: 10
                         }
                         color: "#FFFFFF"
-                        font.pixelSize: 14
-                        
+                        font.pixelSize: 13
+                        clip: true
+
                         Text {
                             text: "Search passwords..."
-                            color: "#666666"
+                            color: "#444444"
                             visible: !searchInput.text.length
                             anchors.verticalCenter: parent.verticalCenter
-                            font.pixelSize: 14
+                            font.pixelSize: 13
                         }
                     }
                 }
-                
+
                 // Password list
                 ListView {
                     id: passwordList
                     width: parent.width
-                    height: 350
+                    height: rightPanel.height - 70
                     clip: true
-                    spacing: 12
+                    spacing: 8
                     model: PasswordModel
 
-                    // Empty-state placeholder
                     Text {
                         anchors.centerIn: parent
-                        text: "No passwords saved yet.\nClick \"ADD PASSWORD\" to get started."
-                        color: "#555555"
+                        text: "No passwords saved yet.\nClick  ADD PASSWORD  to get started."
+                        color: "#444444"
                         horizontalAlignment: Text.AlignHCenter
                         font { family: "Roboto"; pixelSize: 14 }
                         visible: passwordList.count === 0
-                        lineHeight: 1.6
+                        lineHeight: 1.7
                     }
 
                     delegate: PasswordItem {
@@ -238,53 +207,69 @@ Rectangle {
                         username: model.username
                         password: model.password
                         url:      model.website
+                        itemIndex: index
+
+                        onDeleteRequested: function(idx) {
+                            PasswordModel.removePassword(idx)
+                            fileManager.savePasswords(PasswordModel.toJson())
+                        }
                     }
                 }
             }
         }
-        
-        // ── Action buttons ─────────────────────────────────────────────────
+
+        // ── Action buttons ────────────────────────────────────────────────────
         Row {
-            anchors {
-                bottom: parent.bottom
-                bottomMargin: 30
-                right: parent.right
-                rightMargin: 40
-            }
-            spacing: 15
-            
+            id: actionRow
+            anchors { bottom: parent.bottom; bottomMargin: 20; right: parent.right; rightMargin: 32 }
+            spacing: 12
+
             Button {
                 text: "ADD PASSWORD"
-                width: 150
+                width: 148
                 height: 40
-                background: Rectangle { color: "#9900FF"; radius: 8 }
+                hoverEnabled: true
+                background: Rectangle {
+                    color: parent.hovered ? "#aa22ff" : "#9900FF"
+                    radius: 8
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                }
                 contentItem: Text {
-                    text: parent.text
-                    color: "#FFFFFF"
+                    text: parent.text; color: "#FFFFFF"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     font { family: "Roboto"; pixelSize: 12; bold: true }
                 }
-                onClicked: stackView.push("generatePasswordPage.qml")
-                scale: pressed ? 0.9 : 1.0
-                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.InOutQuad } }
+                onClicked: stackView.push("qrc:/generatePasswordPage.qml")
+                scale: pressed ? 0.95 : 1.0
+                Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.InOutQuad } }
             }
-            
+
             Button {
                 text: "LOCK VAULT"
-                width: 150
+                width: 130
                 height: 40
-                background: Rectangle { color: "#333333"; radius: 8 }
+                hoverEnabled: true
+                background: Rectangle {
+                    color: parent.hovered ? "#3A3A3A" : "#2A2A2A"
+                    radius: 8
+                    border.color: "#444444"
+                    border.width: 1
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                }
                 contentItem: Text {
-                    text: parent.text
-                    color: "#FFFFFF"
+                    text: parent.text; color: "#CCCCCC"
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
                     font { family: "Roboto"; pixelSize: 12; bold: true }
                 }
-                onClicked: stackView.push("admission.qml")
-                scale: pressed ? 0.9 : 1.0
-                Behavior on scale { NumberAnimation { duration: 150; easing.type: Easing.InOutQuad } }
+                onClicked: {
+                    // Clear model on lock for security
+                    PasswordModel.fromJson("[]")
+                    stackView.push("qrc:/admission.qml")
+                }
+                scale: pressed ? 0.95 : 1.0
+                Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.InOutQuad } }
             }
         }
     }

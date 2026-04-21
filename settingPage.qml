@@ -1,699 +1,300 @@
-﻿import QtQuick 2.9
-import QtQuick.Controls 2.9
+import QtQuick 2.15
+import QtQuick.Controls 2.15
 
 Rectangle {
     id: settingsPageRoot
     width: 906
     height: 508
     color: "#0A0A0A"
-    
-    // Свойства для хранения выбранных настроек
-    property string selectedLanguage: "English"
-    property string selectedTheme: "Dark"
+
+    // Local state — written to AppSettings only on SAVE
+    property string selectedLanguage: AppSettings.language
+    property string selectedTheme:    AppSettings.theme
 
     // ── Top bar ───────────────────────────────────────────────────────────────
     Rectangle {
         id: topBar
         width: parent.width
-        height: 80
+        height: 70
         color: "#111111"
 
-        // Back button
         Rectangle {
             id: backBtn
-            width: 36
-            height: 36
-            radius: 8
-            color: backMouseArea.containsMouse ? "#222222" : "transparent"
-            anchors {
-                left: parent.left
-                leftMargin: 20
-                verticalCenter: parent.verticalCenter
-            }
+            width: 36; height: 36; radius: 8
+            color: backMa.containsMouse ? "#222222" : "transparent"
+            anchors { left: parent.left; leftMargin: 20; verticalCenter: parent.verticalCenter }
             Behavior on color { ColorAnimation { duration: 120 } }
 
             Text {
-                text: "←"
-                color: backMouseArea.containsMouse ? "#9900FF" : "#AAAAAA"
-                font.pixelSize: 24
+                text: "\u2190"
+                color: backMa.containsMouse ? "#9900FF" : "#AAAAAA"
+                font.pixelSize: 22
                 anchors.centerIn: parent
                 Behavior on color { ColorAnimation { duration: 120 } }
             }
 
             MouseArea {
-                id: backMouseArea
+                id: backMa
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    if (typeof stackView !== 'undefined' && stackView) {
-                        stackView.pop()
-                    }
-                }
+                onClicked: stackView.pop()
             }
         }
 
         Text {
             text: "SETTINGS"
             color: "#FFFFFF"
-            anchors {
-                left: backBtn.right
-                leftMargin: 16
-                verticalCenter: parent.verticalCenter
-            }
-            font { family: "Roboto"; pixelSize: 20; bold: true; letterSpacing: 1 }
+            anchors { left: backBtn.right; leftMargin: 14; verticalCenter: parent.verticalCenter }
+            font { family: "Roboto"; pixelSize: 18; bold: true; letterSpacing: 1 }
         }
 
         Text {
             text: "LPMC"
             color: "#9900FF"
-            anchors {
-                right: parent.right
-                rightMargin: 30
-                verticalCenter: parent.verticalCenter
-            }
-            font { family: "Roboto"; pixelSize: 20; bold: true }
+            anchors { right: parent.right; rightMargin: 28; verticalCenter: parent.verticalCenter }
+            font { family: "Roboto"; pixelSize: 18; bold: true }
         }
     }
 
-    // ── Content ───────────────────────────────────────────────────────────────
+    // ── Two-column layout ─────────────────────────────────────────────────────
     Row {
         anchors {
-            top: topBar.bottom
-            bottom: parent.bottom
-            left: parent.left
-            right: parent.right
-            margins: 24
+            top: topBar.bottom; bottom: saveArea.top
+            left: parent.left; right: parent.right
+            margins: 20; topMargin: 16; bottomMargin: 8
         }
-        spacing: 20
+        spacing: 16
 
-        // ── Language Section ──────────────────────────────────────────────────
+        // ── Language column ───────────────────────────────────────────────────
         Rectangle {
-            width: (parent.width - 20) / 2
+            width: (parent.width - 16) / 2
             height: parent.height
             color: "#111111"
             radius: 12
 
             Column {
-                anchors {
-                    top: parent.top
-                    left: parent.left
-                    right: parent.right
-                    margins: 24
-                }
-                spacing: 16
+                anchors { top: parent.top; left: parent.left; right: parent.right; margins: 20 }
+                spacing: 14
 
                 Row {
-                    spacing: 10
-                    Text {
-                        text: "🌐"
-                        font.pixelSize: 20
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
+                    spacing: 8
+                    Text { text: "\uD83C\uDF10"; font.pixelSize: 18 }
                     Text {
                         text: "Language"
                         color: "#FFFFFF"
-                        font { family: "Roboto"; pixelSize: 18; bold: true }
+                        font { family: "Roboto"; pixelSize: 16; bold: true }
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
 
                 Text {
                     text: "Choose the interface language"
-                    color: "#666666"
+                    color: "#555555"
                     font { family: "Roboto"; pixelSize: 12 }
                 }
 
-                Rectangle { 
-                    width: parent.width
-                    height: 1
-                    color: "#222222"
-                }
+                Rectangle { width: parent.width; height: 1; color: "#1E1E1E" }
 
                 // Language options
-                Column {
-                    width: parent.width
-                    spacing: 8
-                    
-                    // English option
-                    Rectangle {
+                Repeater {
+                    model: [
+                        { code: "English",    flag: "\uD83C\uDDEC\uD83C\uDDE7", label: "English" },
+                        { code: "Russian",    flag: "\uD83C\uDDF7\uD83C\uDDFA", label: "Русский" },
+                        { code: "Lithuanian", flag: "\uD83C\uDDF1\uD83C\uDDF9", label: "Lietuvių" }
+                    ]
+
+                    delegate: Rectangle {
                         width: parent.width
-                        height: 48
+                        height: 46
                         radius: 8
-                        color: langEnglishMouse.containsMouse ? "#1E1E1E" : 
-                               (settingsPageRoot.selectedLanguage === "English" ? "#1A0033" : "transparent")
+                        color: langMa.containsMouse
+                               ? "#1E1E1E"
+                               : (settingsPageRoot.selectedLanguage === modelData.code ? "#1A0033" : "transparent")
                         Behavior on color { ColorAnimation { duration: 120 } }
 
+                        // Active indicator bar
                         Rectangle {
-                            width: 3
-                            height: 24
-                            radius: 2
+                            width: 3; height: 22; radius: 2
                             color: "#9900FF"
-                            visible: settingsPageRoot.selectedLanguage === "English"
-                            anchors { 
-                                left: parent.left
-                                leftMargin: 4
-                                verticalCenter: parent.verticalCenter
-                            }
+                            visible: settingsPageRoot.selectedLanguage === modelData.code
+                            anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                         }
 
                         Text {
-                            text: "🇬🇧"
-                            font.pixelSize: 20
-                            anchors {
-                                left: parent.left
-                                leftMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
+                            text: modelData.flag
+                            font.pixelSize: 18
+                            anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
                         }
 
                         Text {
-                            text: "English"
-                            color: settingsPageRoot.selectedLanguage === "English" ? "#FFFFFF" : "#AAAAAA"
+                            text: modelData.label
+                            color: settingsPageRoot.selectedLanguage === modelData.code ? "#FFFFFF" : "#AAAAAA"
                             font { family: "Roboto"; pixelSize: 14 }
-                            anchors {
-                                left: parent.left
-                                leftMargin: 48
-                                verticalCenter: parent.verticalCenter
-                            }
+                            anchors { left: parent.left; leftMargin: 46; verticalCenter: parent.verticalCenter }
                         }
 
                         Text {
-                            text: "✓"
+                            text: "\u2713"
                             color: "#9900FF"
                             font.pixelSize: 14
-                            visible: settingsPageRoot.selectedLanguage === "English"
-                            anchors {
-                                right: parent.right
-                                rightMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
+                            visible: settingsPageRoot.selectedLanguage === modelData.code
+                            anchors { right: parent.right; rightMargin: 14; verticalCenter: parent.verticalCenter }
                         }
 
                         MouseArea {
-                            id: langEnglishMouse
+                            id: langMa
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                settingsPageRoot.selectedLanguage = "English"
-                                console.log("Language selected: English")
-                            }
-                        }
-                    }
-                    
-                    // Russian option
-                    Rectangle {
-                        width: parent.width
-                        height: 48
-                        radius: 8
-                        color: langRussianMouse.containsMouse ? "#1E1E1E" : 
-                               (settingsPageRoot.selectedLanguage === "Russian" ? "#1A0033" : "transparent")
-                        Behavior on color { ColorAnimation { duration: 120 } }
-
-                        Rectangle {
-                            width: 3
-                            height: 24
-                            radius: 2
-                            color: "#9900FF"
-                            visible: settingsPageRoot.selectedLanguage === "Russian"
-                            anchors { 
-                                left: parent.left
-                                leftMargin: 4
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Text {
-                            text: "🇷🇺"
-                            font.pixelSize: 20
-                            anchors {
-                                left: parent.left
-                                leftMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Text {
-                            text: "Russian"
-                            color: settingsPageRoot.selectedLanguage === "Russian" ? "#FFFFFF" : "#AAAAAA"
-                            font { family: "Roboto"; pixelSize: 14 }
-                            anchors {
-                                left: parent.left
-                                leftMargin: 48
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Text {
-                            text: "✓"
-                            color: "#9900FF"
-                            font.pixelSize: 14
-                            visible: settingsPageRoot.selectedLanguage === "Russian"
-                            anchors {
-                                right: parent.right
-                                rightMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        MouseArea {
-                            id: langRussianMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                settingsPageRoot.selectedLanguage = "Russian"
-                                console.log("Language selected: Russian")
-                            }
-                        }
-                    }
-                    
-                    // Lithuanian option
-                    Rectangle {
-                        width: parent.width
-                        height: 48
-                        radius: 8
-                        color: langLithuanianMouse.containsMouse ? "#1E1E1E" : 
-                               (settingsPageRoot.selectedLanguage === "Lithuanian" ? "#1A0033" : "transparent")
-                        Behavior on color { ColorAnimation { duration: 120 } }
-
-                        Rectangle {
-                            width: 3
-                            height: 24
-                            radius: 2
-                            color: "#9900FF"
-                            visible: settingsPageRoot.selectedLanguage === "Lithuanian"
-                            anchors { 
-                                left: parent.left
-                                leftMargin: 4
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Text {
-                            text: "🇱🇹"
-                            font.pixelSize: 20
-                            anchors {
-                                left: parent.left
-                                leftMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Text {
-                            text: "Lithuanian"
-                            color: settingsPageRoot.selectedLanguage === "Lithuanian" ? "#FFFFFF" : "#AAAAAA"
-                            font { family: "Roboto"; pixelSize: 14 }
-                            anchors {
-                                left: parent.left
-                                leftMargin: 48
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Text {
-                            text: "✓"
-                            color: "#9900FF"
-                            font.pixelSize: 14
-                            visible: settingsPageRoot.selectedLanguage === "Lithuanian"
-                            anchors {
-                                right: parent.right
-                                rightMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        MouseArea {
-                            id: langLithuanianMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                settingsPageRoot.selectedLanguage = "Lithuanian"
-                                console.log("Language selected: Lithuanian")
-                            }
+                            onClicked: settingsPageRoot.selectedLanguage = modelData.code
                         }
                     }
                 }
             }
         }
 
-        // ── Theme Section ──────────────────────────────────────────────────────
+        // ── Theme column ──────────────────────────────────────────────────────
         Rectangle {
-            width: (parent.width - 20) / 2
+            width: (parent.width - 16) / 2
             height: parent.height
             color: "#111111"
             radius: 12
 
             Column {
-                anchors {
-                    top: parent.top
-                    left: parent.left
-                    right: parent.right
-                    margins: 24
-                }
-                spacing: 16
+                anchors { top: parent.top; left: parent.left; right: parent.right; margins: 20 }
+                spacing: 14
 
                 Row {
-                    spacing: 10
-                    Text {
-                        text: "🎨"
-                        font.pixelSize: 20
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
+                    spacing: 8
+                    Text { text: "\uD83C\uDFA8"; font.pixelSize: 18 }
                     Text {
                         text: "Theme"
                         color: "#FFFFFF"
-                        font { family: "Roboto"; pixelSize: 18; bold: true }
+                        font { family: "Roboto"; pixelSize: 16; bold: true }
                         anchors.verticalCenter: parent.verticalCenter
                     }
                 }
 
                 Text {
                     text: "Choose the color theme"
-                    color: "#666666"
+                    color: "#555555"
                     font { family: "Roboto"; pixelSize: 12 }
                 }
 
-                Rectangle { 
-                    width: parent.width
-                    height: 1
-                    color: "#222222"
-                }
+                Rectangle { width: parent.width; height: 1; color: "#1E1E1E" }
 
                 // Theme options
-                Column {
-                    width: parent.width
-                    spacing: 8
-                    
-                    // Dark theme
-                    Rectangle {
+                Repeater {
+                    model: [
+                        {
+                            code: "Dark",
+                            label: "Dark",
+                            swatches: ["#0A0A0A", "#1E1E1E", "#9900FF"]
+                        },
+                        {
+                            code: "Light",
+                            label: "Light",
+                            swatches: ["#F0F0F0", "#E8E8E8", "#7700CC"]
+                        },
+                        {
+                            code: "Purple",
+                            label: "Purple",
+                            swatches: ["#0D0017", "#2D0055", "#CC00FF"]
+                        }
+                    ]
+
+                    delegate: Rectangle {
                         width: parent.width
-                        height: 56
+                        height: 50
                         radius: 8
-                        color: themeDarkMouse.containsMouse ? "#1E1E1E" : 
-                               (settingsPageRoot.selectedTheme === "Dark" ? "#1A0033" : "transparent")
+                        color: themeMa.containsMouse
+                               ? "#1E1E1E"
+                               : (settingsPageRoot.selectedTheme === modelData.code ? "#1A0033" : "transparent")
                         Behavior on color { ColorAnimation { duration: 120 } }
 
+                        // Active indicator bar
                         Rectangle {
-                            width: 3
-                            height: 28
-                            radius: 2
+                            width: 3; height: 26; radius: 2
                             color: "#9900FF"
-                            visible: settingsPageRoot.selectedTheme === "Dark"
-                            anchors { 
-                                left: parent.left
-                                leftMargin: 4
-                                verticalCenter: parent.verticalCenter
-                            }
+                            visible: settingsPageRoot.selectedTheme === modelData.code
+                            anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter }
                         }
 
+                        // Color swatches
                         Row {
-                            spacing: 4
-                            anchors {
-                                left: parent.left
-                                leftMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
+                            id: swatchRow
+                            spacing: 3
+                            anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
 
-                            Rectangle {
-                                width: 20
-                                height: 20
-                                radius: 4
-                                color: "#0A0A0A"
-                                border.color: "#333333"
-                                border.width: 1
-                            }
-                            Rectangle {
-                                width: 20
-                                height: 20
-                                radius: 4
-                                color: "#111111"
-                                border.color: "#333333"
-                                border.width: 1
-                            }
-                            Rectangle {
-                                width: 20
-                                height: 20
-                                radius: 4
-                                color: "#9900FF"
-                                border.color: "#333333"
-                                border.width: 1
+                            Repeater {
+                                model: modelData.swatches
+                                Rectangle {
+                                    width: 18; height: 18; radius: 4
+                                    color: modelData
+                                    border.color: "#333333"; border.width: 1
+                                }
                             }
                         }
 
                         Text {
-                            text: "Dark"
-                            color: settingsPageRoot.selectedTheme === "Dark" ? "#FFFFFF" : "#AAAAAA"
+                            text: modelData.label
+                            color: settingsPageRoot.selectedTheme === modelData.code ? "#FFFFFF" : "#AAAAAA"
                             font { family: "Roboto"; pixelSize: 14 }
-                            anchors {
-                                left: parent.left
-                                leftMargin: 80
-                                verticalCenter: parent.verticalCenter
-                            }
+                            anchors { left: swatchRow.right; leftMargin: 12; verticalCenter: parent.verticalCenter }
                         }
 
                         Text {
-                            text: "✓"
+                            text: "\u2713"
                             color: "#9900FF"
                             font.pixelSize: 14
-                            visible: settingsPageRoot.selectedTheme === "Dark"
-                            anchors {
-                                right: parent.right
-                                rightMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
+                            visible: settingsPageRoot.selectedTheme === modelData.code
+                            anchors { right: parent.right; rightMargin: 14; verticalCenter: parent.verticalCenter }
                         }
 
                         MouseArea {
-                            id: themeDarkMouse
+                            id: themeMa
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                settingsPageRoot.selectedTheme = "Dark"
-                                console.log("Theme selected: Dark")
-                            }
-                        }
-                    }
-                    
-                    // Light theme
-                    Rectangle {
-                        width: parent.width
-                        height: 56
-                        radius: 8
-                        color: themeLightMouse.containsMouse ? "#1E1E1E" : 
-                               (settingsPageRoot.selectedTheme === "Light" ? "#1A0033" : "transparent")
-                        Behavior on color { ColorAnimation { duration: 120 } }
-
-                        Rectangle {
-                            width: 3
-                            height: 28
-                            radius: 2
-                            color: "#9900FF"
-                            visible: settingsPageRoot.selectedTheme === "Light"
-                            anchors { 
-                                left: parent.left
-                                leftMargin: 4
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Row {
-                            spacing: 4
-                            anchors {
-                                left: parent.left
-                                leftMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
-
-                            Rectangle {
-                                width: 20
-                                height: 20
-                                radius: 4
-                                color: "#F0F0F0"
-                                border.color: "#333333"
-                                border.width: 1
-                            }
-                            Rectangle {
-                                width: 20
-                                height: 20
-                                radius: 4
-                                color: "#DDDDDD"
-                                border.color: "#333333"
-                                border.width: 1
-                            }
-                            Rectangle {
-                                width: 20
-                                height: 20
-                                radius: 4
-                                color: "#7700CC"
-                                border.color: "#333333"
-                                border.width: 1
-                            }
-                        }
-
-                        Text {
-                            text: "Light"
-                            color: settingsPageRoot.selectedTheme === "Light" ? "#FFFFFF" : "#AAAAAA"
-                            font { family: "Roboto"; pixelSize: 14 }
-                            anchors {
-                                left: parent.left
-                                leftMargin: 80
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Text {
-                            text: "✓"
-                            color: "#9900FF"
-                            font.pixelSize: 14
-                            visible: settingsPageRoot.selectedTheme === "Light"
-                            anchors {
-                                right: parent.right
-                                rightMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        MouseArea {
-                            id: themeLightMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                settingsPageRoot.selectedTheme = "Light"
-                                console.log("Theme selected: Light")
-                            }
-                        }
-                    }
-                    
-                    // Purple theme
-                    Rectangle {
-                        width: parent.width
-                        height: 56
-                        radius: 8
-                        color: themePurpleMouse.containsMouse ? "#1E1E1E" : 
-                               (settingsPageRoot.selectedTheme === "Purple" ? "#1A0033" : "transparent")
-                        Behavior on color { ColorAnimation { duration: 120 } }
-
-                        Rectangle {
-                            width: 3
-                            height: 28
-                            radius: 2
-                            color: "#9900FF"
-                            visible: settingsPageRoot.selectedTheme === "Purple"
-                            anchors { 
-                                left: parent.left
-                                leftMargin: 4
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Row {
-                            spacing: 4
-                            anchors {
-                                left: parent.left
-                                leftMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
-
-                            Rectangle {
-                                width: 20
-                                height: 20
-                                radius: 4
-                                color: "#1A0033"
-                                border.color: "#333333"
-                                border.width: 1
-                            }
-                            Rectangle {
-                                width: 20
-                                height: 20
-                                radius: 4
-                                color: "#2D0055"
-                                border.color: "#333333"
-                                border.width: 1
-                            }
-                            Rectangle {
-                                width: 20
-                                height: 20
-                                radius: 4
-                                color: "#CC00FF"
-                                border.color: "#333333"
-                                border.width: 1
-                            }
-                        }
-
-                        Text {
-                            text: "Purple"
-                            color: settingsPageRoot.selectedTheme === "Purple" ? "#FFFFFF" : "#AAAAAA"
-                            font { family: "Roboto"; pixelSize: 14 }
-                            anchors {
-                                left: parent.left
-                                leftMargin: 80
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        Text {
-                            text: "✓"
-                            color: "#9900FF"
-                            font.pixelSize: 14
-                            visible: settingsPageRoot.selectedTheme === "Purple"
-                            anchors {
-                                right: parent.right
-                                rightMargin: 16
-                                verticalCenter: parent.verticalCenter
-                            }
-                        }
-
-                        MouseArea {
-                            id: themePurpleMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                settingsPageRoot.selectedTheme = "Purple"
-                                console.log("Theme selected: Purple")
-                            }
+                            onClicked: settingsPageRoot.selectedTheme = modelData.code
                         }
                     }
                 }
             }
         }
     }
-    
-    // Save button (optional)
+
+    // ── Save button ───────────────────────────────────────────────────────────
     Rectangle {
-        width: 120
-        height: 40
-        radius: 8
-        color: saveButtonMouse.containsMouse ? "#7700CC" : "#9900FF"
-        anchors {
-            bottom: parent.bottom
-            bottomMargin: 20
-            right: parent.right
-            rightMargin: 44
-        }
-        Behavior on color { ColorAnimation { duration: 120 } }
-        
-        Text {
-            text: "SAVE"
-            color: "#FFFFFF"
-            font { family: "Roboto"; pixelSize: 12; bold: true }
-            anchors.centerIn: parent
-        }
-        
-        MouseArea {
-            id: saveButtonMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-                console.log("Settings saved - Language:", settingsPageRoot.selectedLanguage, "Theme:", settingsPageRoot.selectedTheme)
-                // Here you can add actual save logic
-                if (typeof stackView !== 'undefined' && stackView) {
+        id: saveArea
+        height: 64
+        anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
+        color: "#0A0A0A"
+
+        Rectangle {
+            width: 120; height: 40
+            radius: 8
+            color: saveMa.containsMouse ? "#aa22ff" : "#9900FF"
+            anchors { right: parent.right; rightMargin: 28; verticalCenter: parent.verticalCenter }
+            Behavior on color { ColorAnimation { duration: 120 } }
+
+            Text {
+                text: "SAVE"
+                color: "#FFFFFF"
+                font { family: "Roboto"; pixelSize: 13; bold: true }
+                anchors.centerIn: parent
+            }
+
+            MouseArea {
+                id: saveMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    AppSettings.setTheme(settingsPageRoot.selectedTheme)
+                    AppSettings.setLanguage(settingsPageRoot.selectedLanguage)
+                    AppSettings.save()
                     stackView.pop()
                 }
             }

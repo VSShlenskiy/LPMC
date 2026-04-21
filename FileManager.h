@@ -23,9 +23,9 @@ public:
 private:
 
     QByteArray encryptAES256GCM(const QByteArray& plaintext,
-        const QByteArray& key,
-        QByteArray& iv,
-        QByteArray& tag)
+                                 const QByteArray& key,
+                                 QByteArray& iv,
+                                 QByteArray& tag)
     {
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
 
@@ -35,17 +35,16 @@ private:
         EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), nullptr, nullptr, nullptr);
         EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, iv.size(), nullptr);
         EVP_EncryptInit_ex(ctx, nullptr, nullptr,
-            reinterpret_cast<const unsigned char*>(key.data()),
-            reinterpret_cast<const unsigned char*>(iv.data()));
+            reinterpret_cast<const unsigned char*>(key.constData()),
+            reinterpret_cast<const unsigned char*>(iv.constData()));
 
-        QByteArray ciphertext;
-        ciphertext.resize(plaintext.size());
+        QByteArray ciphertext(plaintext.size() + 16, '\0');
 
-        int len;
+        int len = 0;
         EVP_EncryptUpdate(ctx,
             reinterpret_cast<unsigned char*>(ciphertext.data()),
             &len,
-            reinterpret_cast<const unsigned char*>(plaintext.data()),
+            reinterpret_cast<const unsigned char*>(plaintext.constData()),
             plaintext.size());
 
         int ciphertext_len = len;
@@ -66,32 +65,33 @@ private:
     }
 
     QByteArray decryptAES256GCM(const QByteArray& ciphertext,
-        const QByteArray& key,
-        const QByteArray& iv,
-        const QByteArray& tag)
+                                 const QByteArray& key,
+                                 const QByteArray& iv,
+                                 const QByteArray& tag)
     {
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
 
         EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), nullptr, nullptr, nullptr);
         EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, iv.size(), nullptr);
         EVP_DecryptInit_ex(ctx, nullptr, nullptr,
-            reinterpret_cast<const unsigned char*>(key.data()),
-            reinterpret_cast<const unsigned char*>(iv.data()));
+            reinterpret_cast<const unsigned char*>(key.constData()),
+            reinterpret_cast<const unsigned char*>(iv.constData()));
 
-        QByteArray plaintext;
-        plaintext.resize(ciphertext.size());
+        QByteArray plaintext(ciphertext.size(), '\0');
 
-        int len;
+        int len = 0;
         EVP_DecryptUpdate(ctx,
             reinterpret_cast<unsigned char*>(plaintext.data()),
             &len,
-            reinterpret_cast<const unsigned char*>(ciphertext.data()),
+            reinterpret_cast<const unsigned char*>(ciphertext.constData()),
             ciphertext.size());
 
         int plaintext_len = len;
 
-        EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, tag.size(),
-            const_cast<char*>(tag.data()));
+        // tag должен быть non-const для EVP_CTRL_GCM_SET_TAG
+        QByteArray tagCopy = tag;
+        EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, tagCopy.size(),
+            tagCopy.data());
 
         int ret = EVP_DecryptFinal_ex(ctx,
             reinterpret_cast<unsigned char*>(plaintext.data()) + len,
@@ -99,9 +99,8 @@ private:
 
         EVP_CIPHER_CTX_free(ctx);
 
-        if (ret <= 0)
-        {
-            qDebug() << "Decryption failed (authentication error)";
+        if (ret <= 0) {
+            qWarning() << "[FileManager] AES-GCM decryption authentication failed";
             return {};
         }
 
@@ -111,7 +110,7 @@ private:
         return plaintext;
     }
 
-    QByteArray getDerivedKey()
+    QByteArray getDerivedKey() const
     {
         return QCryptographicHash::hash(
             "super_secret_key",
@@ -121,14 +120,16 @@ private:
 
 public:
 
-    // ─── Master password ────────────────────────────────────────────────────
+    // ─── Master password ─────────────────────────────────────────────────────
 
     Q_INVOKABLE bool saveMasterPassword(const QString& password)
     {
         QString filePath = QCoreApplication::applicationDirPath() + "/master.dat";
         QFile file(filePath);
-        if (!file.open(QIODevice::WriteOnly))
+        if (!file.open(QIODevice::WriteOnly)) {
+            qWarning() << "[FileManager] Cannot open master.dat for writing:" << filePath;
             return false;
+        }
 
         QByteArray key = getDerivedKey();
         QByteArray iv, tag;
@@ -145,8 +146,10 @@ public:
     {
         QString filePath = QCoreApplication::applicationDirPath() + "/master.dat";
         QFile file(filePath);
-        if (!file.open(QIODevice::ReadOnly))
+        if (!file.open(QIODevice::ReadOnly)) {
+            qWarning() << "[FileManager] Cannot open master.dat for reading:" << filePath;
             return false;
+        }
 
         QByteArray iv         = file.read(12);
         QByteArray tag        = file.read(16);
@@ -154,7 +157,7 @@ public:
         file.close();
 
         QByteArray decrypted = decryptAES256GCM(ciphertext, getDerivedKey(), iv, tag);
-        return decrypted == password.toUtf8();
+        return !decrypted.isEmpty() && (decrypted == password.toUtf8());
     }
 
     Q_INVOKABLE bool isMasterPasswordSet()
@@ -163,20 +166,16 @@ public:
         return QFile::exists(filePath);
     }
 
-    // ─── Password vault ─────────────────────────────────────────────────────
+    // ─── Password vault ──────────────────────────────────────────────────────
 
-    /**
-     * Save a complete JSON array of password entries to passwords.dat.
-     * Called from QML after every addPassword / removePassword operation.
-     *
-     * @param jsonArray  JSON string: [{"title":…,"username":…,"password":…,"website":…}, …]
-     */
     Q_INVOKABLE bool savePasswords(const QString& jsonArray)
     {
         QString filePath = QCoreApplication::applicationDirPath() + "/passwords.dat";
         QFile file(filePath);
-        if (!file.open(QIODevice::WriteOnly))
+        if (!file.open(QIODevice::WriteOnly)) {
+            qWarning() << "[FileManager] Cannot open passwords.dat for writing:" << filePath;
             return false;
+        }
 
         QByteArray key = getDerivedKey();
         QByteArray iv, tag;
@@ -189,11 +188,6 @@ public:
         return true;
     }
 
-    /**
-     * Load and decrypt the password vault.
-     *
-     * @return JSON string (same format as savePasswords) or empty string on error.
-     */
     Q_INVOKABLE QString loadPasswords()
     {
         QString filePath = QCoreApplication::applicationDirPath() + "/passwords.dat";
@@ -206,6 +200,9 @@ public:
         QByteArray ciphertext = file.readAll();
         file.close();
 
+        if (iv.size() < 12 || tag.size() < 16 || ciphertext.isEmpty())
+            return "[]";
+
         QByteArray decrypted = decryptAES256GCM(ciphertext, getDerivedKey(), iv, tag);
         if (decrypted.isEmpty())
             return "[]";
@@ -214,4 +211,4 @@ public:
     }
 };
 
-#endif
+#endif // FILEMANAGER_H
