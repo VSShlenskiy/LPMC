@@ -9,6 +9,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QVariantMap>
 
 #include <openssl/evp.h>
 #include <openssl/rand.h>
@@ -21,6 +22,8 @@ public:
     explicit FileManager(QObject* parent = nullptr) : QObject(parent) {}
 
 private:
+
+    // ─── AES-256-GCM core ─────────────────────────────────────────────────────
 
     QByteArray encryptAES256GCM(const QByteArray& plaintext,
                                  const QByteArray& key,
@@ -88,7 +91,6 @@ private:
 
         int plaintext_len = len;
 
-        // tag должен быть non-const для EVP_CTRL_GCM_SET_TAG
         QByteArray tagCopy = tag;
         EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, tagCopy.size(),
             tagCopy.data());
@@ -118,9 +120,48 @@ private:
         );
     }
 
+    // ─── Generic encrypted file helpers ──────────────────────────────────────
+
+    bool saveEncryptedString(const QString& filePath, const QString& data)
+    {
+        QFile file(filePath);
+        if (!file.open(QIODevice::WriteOnly)) {
+            qWarning() << "[FileManager] Cannot open for writing:" << filePath;
+            return false;
+        }
+
+        QByteArray key = getDerivedKey();
+        QByteArray iv, tag;
+        QByteArray encrypted = encryptAES256GCM(data.toUtf8(), key, iv, tag);
+
+        file.write(iv);
+        file.write(tag);
+        file.write(encrypted);
+        file.close();
+        return true;
+    }
+
+    QString loadEncryptedString(const QString& filePath)
+    {
+        QFile file(filePath);
+        if (!file.exists() || !file.open(QIODevice::ReadOnly))
+            return {};
+
+        QByteArray iv         = file.read(12);
+        QByteArray tag        = file.read(16);
+        QByteArray ciphertext = file.readAll();
+        file.close();
+
+        if (iv.size() < 12 || tag.size() < 16 || ciphertext.isEmpty())
+            return {};
+
+        QByteArray decrypted = decryptAES256GCM(ciphertext, getDerivedKey(), iv, tag);
+        return decrypted.isEmpty() ? QString() : QString::fromUtf8(decrypted);
+    }
+
 public:
 
-    // ─── Master password ─────────────────────────────────────────────────────
+    // ─── Master password ──────────────────────────────────────────────────────
 
     Q_INVOKABLE bool saveMasterPassword(const QString& password)
     {
@@ -166,7 +207,24 @@ public:
         return QFile::exists(filePath);
     }
 
-    // ─── Password vault ──────────────────────────────────────────────────────
+    // Returns the plain master password (used for recovery email)
+    Q_INVOKABLE QString getMasterPassword()
+    {
+        QString filePath = QCoreApplication::applicationDirPath() + "/master.dat";
+        QFile file(filePath);
+        if (!file.open(QIODevice::ReadOnly))
+            return {};
+
+        QByteArray iv         = file.read(12);
+        QByteArray tag        = file.read(16);
+        QByteArray ciphertext = file.readAll();
+        file.close();
+
+        QByteArray decrypted = decryptAES256GCM(ciphertext, getDerivedKey(), iv, tag);
+        return decrypted.isEmpty() ? QString() : QString::fromUtf8(decrypted);
+    }
+
+    // ─── Password vault ───────────────────────────────────────────────────────
 
     Q_INVOKABLE bool savePasswords(const QString& jsonArray)
     {
@@ -208,6 +266,76 @@ public:
             return "[]";
 
         return QString::fromUtf8(decrypted);
+    }
+
+    // ─── Recovery email ───────────────────────────────────────────────────────
+
+    Q_INVOKABLE bool saveUserEmail(const QString& email)
+    {
+        return saveEncryptedString(
+            QCoreApplication::applicationDirPath() + "/email.dat",
+            email);
+    }
+
+    Q_INVOKABLE QString getUserEmail()
+    {
+        return loadEncryptedString(
+            QCoreApplication::applicationDirPath() + "/email.dat");
+    }
+
+    // ─── SMTP app-passwords ───────────────────────────────────────────────────
+    // Stored as a JSON object { "domain": "apppassword", ... } in app_passwords.dat
+
+    Q_INVOKABLE bool saveSmtpAppPassword(const QString& domain,
+                                          const QString& appPassword)
+    {
+        QVariantMap all = getAllSmtpAppPasswords();
+        all[domain.toLower()] = appPassword;
+
+        QJsonObject obj;
+        for (auto it = all.cbegin(); it != all.cend(); ++it)
+            obj[it.key()] = it.value().toString();
+
+        QString json = QString::fromUtf8(QJsonDocument(obj).toJson(QJsonDocument::Compact));
+        return saveEncryptedString(
+            QCoreApplication::applicationDirPath() + "/app_passwords.dat",
+            json);
+    }
+
+    Q_INVOKABLE QString getSmtpAppPassword(const QString& domain)
+    {
+        QVariantMap all = getAllSmtpAppPasswords();
+        return all.value(domain.toLower()).toString();
+    }
+
+    Q_INVOKABLE QVariantMap getAllSmtpAppPasswords()
+    {
+        QString json = loadEncryptedString(
+            QCoreApplication::applicationDirPath() + "/app_passwords.dat");
+        if (json.isEmpty())
+            return {};
+
+        QJsonObject obj = QJsonDocument::fromJson(json.toUtf8()).object();
+        QVariantMap result;
+        for (auto it = obj.constBegin(); it != obj.constEnd(); ++it)
+            result[it.key()] = it.value().toString();
+        return result;
+    }
+
+    Q_INVOKABLE bool deleteSmtpAppPassword(const QString& domain)
+    {
+        QVariantMap all = getAllSmtpAppPasswords();
+        if (!all.remove(domain.toLower()))
+            return false;
+
+        QJsonObject obj;
+        for (auto it = all.cbegin(); it != all.cend(); ++it)
+            obj[it.key()] = it.value().toString();
+
+        QString json = QString::fromUtf8(QJsonDocument(obj).toJson(QJsonDocument::Compact));
+        return saveEncryptedString(
+            QCoreApplication::applicationDirPath() + "/app_passwords.dat",
+            json);
     }
 };
 

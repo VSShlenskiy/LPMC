@@ -133,6 +133,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PasswordModel.cpp" />
     <ClCompile Include="AppSettings.cpp" />
+    <ClCompile Include="EmailSender.cpp" />
   </ItemGroup>
 
   <!-- ── Headers (MOC) ──────────────────────────────────────────────────── -->
@@ -140,6 +141,7 @@
     <QtMoc Include="PasswordModel.h" />
     <QtMoc Include="FileManager.h" />
     <QtMoc Include="AppSettings.h" />
+    <QtMoc Include="EmailSender.h" />
   </ItemGroup>
 
   <!-- ── QML files (visible in Solution Explorer, not compiled) ─────────── -->

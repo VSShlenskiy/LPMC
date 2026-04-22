@@ -9,7 +9,7 @@ Rectangle {
     Rectangle {
         id: mainWindow
         width: 510
-        height: 520
+        height: 600
         color: "#111111"
         radius: 20
         anchors.centerIn: parent
@@ -22,7 +22,7 @@ Rectangle {
             color: "#9900FF"
             anchors {
                 top: parent.top
-                topMargin: 30
+                topMargin: 24
                 horizontalCenter: parent.horizontalCenter
             }
             font { family: "Roboto"; pixelSize: 32; bold: true; letterSpacing: 2 }
@@ -34,7 +34,7 @@ Rectangle {
             color: "#CCCCCC"
             anchors {
                 top: logoText.bottom
-                topMargin: 5
+                topMargin: 4
                 horizontalCenter: parent.horizontalCenter
             }
             font { family: "Roboto"; pixelSize: 14 }
@@ -46,7 +46,7 @@ Rectangle {
             color: "#FFFFFF"
             anchors {
                 top: subtitleText.bottom
-                topMargin: 25
+                topMargin: 18
                 horizontalCenter: parent.horizontalCenter
             }
             font { family: "Roboto"; pixelSize: 18; bold: true }
@@ -58,7 +58,7 @@ Rectangle {
             color: "#AAAAAA"
             anchors {
                 top: createMasterText.bottom
-                topMargin: 5
+                topMargin: 4
                 horizontalCenter: parent.horizontalCenter
             }
             font { family: "Roboto"; pixelSize: 12 }
@@ -71,7 +71,7 @@ Rectangle {
             color: "#CCCCCC"
             anchors {
                 top: setupText.bottom
-                topMargin: 25
+                topMargin: 20
                 left: parent.left
                 leftMargin: 40
             }
@@ -122,7 +122,7 @@ Rectangle {
             color: "#CCCCCC"
             anchors {
                 top: masterPass.bottom
-                topMargin: 22
+                topMargin: 20
                 left: parent.left
                 leftMargin: 40
             }
@@ -166,6 +166,89 @@ Rectangle {
             font { family: "Roboto"; pixelSize: 11; bold: true }
         }
 
+        // ── Recovery Email field ──────────────────────────────────────────────
+        Text {
+            id: emailLabel
+            text: "Recovery Email *"
+            color: "#CCCCCC"
+            anchors {
+                top: confirmPass.bottom
+                topMargin: 20
+                left: parent.left
+                leftMargin: 40
+            }
+            font { family: "Roboto"; pixelSize: 11; bold: true }
+        }
+
+        TextField {
+            id: recoveryEmail
+            placeholderText: "Enter recovery email address"
+            inputMethodHints: Qt.ImhEmailCharactersOnly
+            anchors {
+                top: emailLabel.bottom
+                topMargin: 5
+                horizontalCenter: parent.horizontalCenter
+            }
+            width: 430
+            height: 40
+            background: Rectangle {
+                color: "#1E1E1E"
+                radius: 8
+                border.color: recoveryEmail.activeFocus
+                              ? "#9900FF"
+                              : (emailValidation.validEmail ? "#333333" : "#882200")
+                border.width: 1
+            }
+            color: "#FFFFFF"
+            placeholderTextColor: "#666666"
+            leftPadding: 12
+            font.pixelSize: 14
+
+            onTextChanged: emailValidation.validate(text)
+        }
+
+        // Email validation & SMTP hint
+        QtObject {
+            id: emailValidation
+            property bool validEmail: false
+            property string smtpHint: ""
+
+            function validate(email) {
+                var re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                validEmail = re.test(email)
+                if (validEmail) {
+                    var detected = emailSender.detectSmtp(email)
+                    if (detected)
+                        smtpHint = "✓ Server: " + emailSender.smtpHost() + ":" + emailSender.smtpPort()
+                    else
+                        smtpHint = "⚠ Unknown provider – configure SMTP in Settings"
+                } else {
+                    smtpHint = ""
+                }
+            }
+        }
+
+        Text {
+            id: emailStatusText
+            text: {
+                if (recoveryEmail.text.length === 0) return ""
+                if (!emailValidation.validEmail) return "Invalid email address"
+                return emailValidation.smtpHint
+            }
+            color: {
+                if (!emailValidation.validEmail && recoveryEmail.text.length > 0)
+                    return "#FF4444"
+                return emailValidation.smtpHint.startsWith("✓") ? "#00C851" : "#FFAA00"
+            }
+            visible: recoveryEmail.text.length > 0
+            anchors {
+                top: recoveryEmail.bottom
+                topMargin: 4
+                right: recoveryEmail.right
+            }
+            font { family: "Roboto"; pixelSize: 11; bold: true }
+        }
+
         // ── Strength bar ──────────────────────────────────────────────────────
         Rectangle {
             id: strengthBg
@@ -174,8 +257,8 @@ Rectangle {
             color: "#1E1E1E"
             radius: 2
             anchors {
-                top: confirmPass.bottom
-                topMargin: 22
+                top: recoveryEmail.bottom
+                topMargin: 18
                 horizontalCenter: parent.horizontalCenter
             }
 
@@ -205,16 +288,19 @@ Rectangle {
             text: "CREATE"
             anchors {
                 top: strengthBg.bottom
-                topMargin: 22
+                topMargin: 16
                 horizontalCenter: parent.horizontalCenter
             }
             width: 430
             height: 45
-            enabled: masterPass.text.length >= 8 && masterPass.text === confirmPass.text
+            enabled: masterPass.text.length >= 8
+                     && masterPass.text === confirmPass.text
+                     && emailValidation.validEmail
             hoverEnabled: true
 
             onClicked: {
                 if (fileManager.saveMasterPassword(masterPass.text)) {
+                    fileManager.saveUserEmail(recoveryEmail.text)
                     stackView.push("qrc:/homePage.qml")
                 } else {
                     saveErrorText.visible = true
@@ -260,7 +346,7 @@ Rectangle {
         }
 
         Text {
-            text: "⚠  Remember this password! It cannot be recovered."
+            text: "⚠  Remember this password – or use email recovery if forgotten."
             color: "#FFAA00"
             anchors {
                 top: createButton.bottom

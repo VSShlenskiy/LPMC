@@ -7,6 +7,7 @@
 #include "FileManager.h"
 #include "PasswordModel.h"
 #include "AppSettings.h"
+#include "EmailSender.h"
 
 int main(int argc, char* argv[])
 {
@@ -21,16 +22,17 @@ int main(int argc, char* argv[])
     FileManager   fileManager;
     PasswordModel passwordModel;
     AppSettings   appSettings;
+    EmailSender   emailSender;
 
     // ── QML engine ───────────────────────────────────────────────────────────
     QQmlApplicationEngine engine;
 
-    // Все контекстные свойства ДОЛЖНЫ быть установлены ДО загрузки QML
+    // All context properties MUST be set BEFORE loading QML
     engine.rootContext()->setContextProperty("fileManager",    &fileManager);
     engine.rootContext()->setContextProperty("PasswordModel",  &passwordModel);
     engine.rootContext()->setContextProperty("AppSettings",    &appSettings);
+    engine.rootContext()->setContextProperty("emailSender",    &emailSender);
 
-    // Единственная загрузка QML через ресурс
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
     if (engine.rootObjects().isEmpty()) {
