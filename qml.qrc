@@ -8,5 +8,6 @@
         <file>PasswordItem.qml</file>
         <file>regPage.qml</file>
         <file>settingPage.qml</file>
+        <file>icon.ico</file>
     </qresource>
 </RCC>

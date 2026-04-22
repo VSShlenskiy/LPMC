@@ -35,6 +35,12 @@
     <ClCompile Include="PasswordModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AppSettings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="EmailSender.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="regPage.qml">
@@ -60,16 +66,22 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\..\Downloads\icon.jpeg">
-      <Filter>Resource Files</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
     <QtMoc Include="PasswordModel.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="FileManager.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="AppSettings.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="EmailSender.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="icon.ico">
+      <Filter>Source Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 #endif
 
     QGuiApplication app(argc, argv);
-    app.setWindowIcon(QIcon(":/icon.png"));
+    app.setWindowIcon(QIcon(":/icon.ico"));
 
     // ── Backend objects ──────────────────────────────────────────────────────
     FileManager   fileManager;
