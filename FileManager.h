@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QFile>
 #include <QDebug>
+#include <QDir>
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QJsonArray>
@@ -14,21 +15,103 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
+#ifdef Q_OS_WIN
+#  include <windows.h>
+#endif
+
 class FileManager : public QObject
 {
     Q_OBJECT
 
-public:
-    explicit FileManager(QObject* parent = nullptr) : QObject(parent) {}
-
 private:
+    // Возвращает путь к защищённой папке в AppData
+    static QString getDataDirectory()
+    {
+        QDir dir;
+        QString dataPath;
+
+#ifdef Q_OS_WIN
+        // Windows: C:\Users\[Username]\AppData\Local\LPMC\
+        dataPath = QString::fromLocal8Bit(qgetenv("LOCALAPPDATA"));
+        if (dataPath.isEmpty()) {
+            dataPath = QString::fromLocal8Bit(qgetenv("APPDATA"));
+        }
+        dataPath = dataPath + "/LPMC/";
+#else
+        dataPath = QDir::homePath() + "/.local/share/LPMC/";
+#endif
+
+        if (!dir.exists(dataPath)) {
+            dir.mkpath(dataPath);
+        }
+        return dataPath;
+    }
+
+    // Полный путь к конкретному файлу
+    static QString getFilePath(const QString& filename)
+    {
+        return getDataDirectory() + filename;
+    }
+
+    // Список всех DAT файлов приложения
+    QStringList datFilesList() const
+    {
+        const QString dir = getDataDirectory();
+        return {
+            dir + "master.dat",
+            dir + "passwords.dat",
+            dir + "email.dat",
+            dir + "app_passwords.dat"
+        };
+    }
+
+    // Надёжное скрытие файла на Windows
+    static bool hideFileWindows(const QString& filePath)
+    {
+#ifdef Q_OS_WIN
+        if (!QFile::exists(filePath)) {
+            return false;
+        }
+
+        const std::wstring wpath = filePath.toStdWString();
+        DWORD attrs = ::GetFileAttributesW(wpath.c_str());
+
+        if (attrs == INVALID_FILE_ATTRIBUTES) {
+            return false;
+        }
+
+        if (!(attrs & FILE_ATTRIBUTE_HIDDEN)) {
+            ::SetFileAttributesW(wpath.c_str(), attrs | FILE_ATTRIBUTE_HIDDEN);
+        }
+        return true;
+#else
+        Q_UNUSED(filePath);
+        return false;
+#endif
+    }
+
+    // Принудительное скрытие всех DAT файлов
+    void hideAllDatFiles() const
+    {
+        for (const QString& filePath : datFilesList()) {
+            hideFileWindows(filePath);
+        }
+    }
+
+    // Скрытие конкретного файла с проверкой существования
+    static void hideFileIfExists(const QString& filePath)
+    {
+        if (QFile::exists(filePath)) {
+            hideFileWindows(filePath);
+        }
+    }
 
     // ─── AES-256-GCM core ─────────────────────────────────────────────────────
 
     QByteArray encryptAES256GCM(const QByteArray& plaintext,
-                                 const QByteArray& key,
-                                 QByteArray& iv,
-                                 QByteArray& tag)
+        const QByteArray& key,
+        QByteArray& iv,
+        QByteArray& tag)
     {
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
 
@@ -68,9 +151,9 @@ private:
     }
 
     QByteArray decryptAES256GCM(const QByteArray& ciphertext,
-                                 const QByteArray& key,
-                                 const QByteArray& iv,
-                                 const QByteArray& tag)
+        const QByteArray& key,
+        const QByteArray& iv,
+        const QByteArray& tag)
     {
         EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
 
@@ -102,7 +185,6 @@ private:
         EVP_CIPHER_CTX_free(ctx);
 
         if (ret <= 0) {
-            qWarning() << "[FileManager] AES-GCM decryption authentication failed";
             return {};
         }
 
@@ -122,11 +204,11 @@ private:
 
     // ─── Generic encrypted file helpers ──────────────────────────────────────
 
-    bool saveEncryptedString(const QString& filePath, const QString& data)
+    bool saveEncryptedString(const QString& filename, const QString& data)
     {
+        QString filePath = getFilePath(filename);
         QFile file(filePath);
         if (!file.open(QIODevice::WriteOnly)) {
-            qWarning() << "[FileManager] Cannot open for writing:" << filePath;
             return false;
         }
 
@@ -138,17 +220,22 @@ private:
         file.write(tag);
         file.write(encrypted);
         file.close();
+
+        hideFileIfExists(filePath);
         return true;
     }
 
-    QString loadEncryptedString(const QString& filePath)
+    QString loadEncryptedString(const QString& filename)
     {
+        QString filePath = getFilePath(filename);
+        hideFileIfExists(filePath);
+
         QFile file(filePath);
         if (!file.exists() || !file.open(QIODevice::ReadOnly))
             return {};
 
-        QByteArray iv         = file.read(12);
-        QByteArray tag        = file.read(16);
+        QByteArray iv = file.read(12);
+        QByteArray tag = file.read(16);
         QByteArray ciphertext = file.readAll();
         file.close();
 
@@ -160,15 +247,19 @@ private:
     }
 
 public:
+    explicit FileManager(QObject* parent = nullptr) : QObject(parent)
+    {
+        getDataDirectory();
+        hideAllDatFiles();
+    }
 
     // ─── Master password ──────────────────────────────────────────────────────
 
     Q_INVOKABLE bool saveMasterPassword(const QString& password)
     {
-        QString filePath = QCoreApplication::applicationDirPath() + "/master.dat";
+        QString filePath = getFilePath("master.dat");
         QFile file(filePath);
         if (!file.open(QIODevice::WriteOnly)) {
-            qWarning() << "[FileManager] Cannot open master.dat for writing:" << filePath;
             return false;
         }
 
@@ -180,20 +271,23 @@ public:
         file.write(tag);
         file.write(encrypted);
         file.close();
+
+        hideFileIfExists(filePath);
         return true;
     }
 
     Q_INVOKABLE bool verifyMasterPassword(const QString& password)
     {
-        QString filePath = QCoreApplication::applicationDirPath() + "/master.dat";
+        QString filePath = getFilePath("master.dat");
+        hideFileIfExists(filePath);
+
         QFile file(filePath);
         if (!file.open(QIODevice::ReadOnly)) {
-            qWarning() << "[FileManager] Cannot open master.dat for reading:" << filePath;
             return false;
         }
 
-        QByteArray iv         = file.read(12);
-        QByteArray tag        = file.read(16);
+        QByteArray iv = file.read(12);
+        QByteArray tag = file.read(16);
         QByteArray ciphertext = file.readAll();
         file.close();
 
@@ -203,20 +297,22 @@ public:
 
     Q_INVOKABLE bool isMasterPasswordSet()
     {
-        QString filePath = QCoreApplication::applicationDirPath() + "/master.dat";
+        QString filePath = getFilePath("master.dat");
+        hideFileIfExists(filePath);
         return QFile::exists(filePath);
     }
 
-    // Returns the plain master password (used for recovery email)
     Q_INVOKABLE QString getMasterPassword()
     {
-        QString filePath = QCoreApplication::applicationDirPath() + "/master.dat";
+        QString filePath = getFilePath("master.dat");
+        hideFileIfExists(filePath);
+
         QFile file(filePath);
         if (!file.open(QIODevice::ReadOnly))
             return {};
 
-        QByteArray iv         = file.read(12);
-        QByteArray tag        = file.read(16);
+        QByteArray iv = file.read(12);
+        QByteArray tag = file.read(16);
         QByteArray ciphertext = file.readAll();
         file.close();
 
@@ -228,10 +324,9 @@ public:
 
     Q_INVOKABLE bool savePasswords(const QString& jsonArray)
     {
-        QString filePath = QCoreApplication::applicationDirPath() + "/passwords.dat";
+        QString filePath = getFilePath("passwords.dat");
         QFile file(filePath);
         if (!file.open(QIODevice::WriteOnly)) {
-            qWarning() << "[FileManager] Cannot open passwords.dat for writing:" << filePath;
             return false;
         }
 
@@ -243,18 +338,22 @@ public:
         file.write(tag);
         file.write(encrypted);
         file.close();
+
+        hideFileIfExists(filePath);
         return true;
     }
 
     Q_INVOKABLE QString loadPasswords()
     {
-        QString filePath = QCoreApplication::applicationDirPath() + "/passwords.dat";
+        QString filePath = getFilePath("passwords.dat");
+        hideFileIfExists(filePath);
+
         QFile file(filePath);
         if (!file.exists() || !file.open(QIODevice::ReadOnly))
             return "[]";
 
-        QByteArray iv         = file.read(12);
-        QByteArray tag        = file.read(16);
+        QByteArray iv = file.read(12);
+        QByteArray tag = file.read(16);
         QByteArray ciphertext = file.readAll();
         file.close();
 
@@ -272,22 +371,18 @@ public:
 
     Q_INVOKABLE bool saveUserEmail(const QString& email)
     {
-        return saveEncryptedString(
-            QCoreApplication::applicationDirPath() + "/email.dat",
-            email);
+        return saveEncryptedString("email.dat", email);
     }
 
     Q_INVOKABLE QString getUserEmail()
     {
-        return loadEncryptedString(
-            QCoreApplication::applicationDirPath() + "/email.dat");
+        return loadEncryptedString("email.dat");
     }
 
     // ─── SMTP app-passwords ───────────────────────────────────────────────────
-    // Stored as a JSON object { "domain": "apppassword", ... } in app_passwords.dat
 
     Q_INVOKABLE bool saveSmtpAppPassword(const QString& domain,
-                                          const QString& appPassword)
+        const QString& appPassword)
     {
         QVariantMap all = getAllSmtpAppPasswords();
         all[domain.toLower()] = appPassword;
@@ -297,9 +392,7 @@ public:
             obj[it.key()] = it.value().toString();
 
         QString json = QString::fromUtf8(QJsonDocument(obj).toJson(QJsonDocument::Compact));
-        return saveEncryptedString(
-            QCoreApplication::applicationDirPath() + "/app_passwords.dat",
-            json);
+        return saveEncryptedString("app_passwords.dat", json);
     }
 
     Q_INVOKABLE QString getSmtpAppPassword(const QString& domain)
@@ -310,8 +403,7 @@ public:
 
     Q_INVOKABLE QVariantMap getAllSmtpAppPasswords()
     {
-        QString json = loadEncryptedString(
-            QCoreApplication::applicationDirPath() + "/app_passwords.dat");
+        QString json = loadEncryptedString("app_passwords.dat");
         if (json.isEmpty())
             return {};
 
@@ -333,9 +425,31 @@ public:
             obj[it.key()] = it.value().toString();
 
         QString json = QString::fromUtf8(QJsonDocument(obj).toJson(QJsonDocument::Compact));
-        return saveEncryptedString(
-            QCoreApplication::applicationDirPath() + "/app_passwords.dat",
-            json);
+        return saveEncryptedString("app_passwords.dat", json);
+    }
+
+    Q_INVOKABLE bool migrateFromOldLocation()
+    {
+        QString oldDir = QCoreApplication::applicationDirPath();
+        QStringList oldFiles = { "master.dat", "passwords.dat", "email.dat", "app_passwords.dat" };
+        bool anyMigrated = false;
+
+        for (const QString& filename : oldFiles) {
+            QString oldPath = oldDir + "/" + filename;
+            QString newPath = getFilePath(filename);
+
+            if (QFile::exists(oldPath) && !QFile::exists(newPath)) {
+                if (QFile::copy(oldPath, newPath)) {
+                    anyMigrated = true;
+                }
+            }
+        }
+
+        if (anyMigrated) {
+            hideAllDatFiles();
+        }
+
+        return anyMigrated;
     }
 };
 
