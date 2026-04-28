@@ -41,6 +41,9 @@
     <ClCompile Include="EmailSender.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="RotationManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="regPage.qml">
@@ -78,10 +81,18 @@
     <QtMoc Include="EmailSender.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="RotationManager.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon.ico">
       <Filter>Source Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="app_icon.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

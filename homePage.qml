@@ -203,6 +203,7 @@ Rectangle {
                     }
 
                     delegate: PasswordItem {
+                        itemId:    model.itemId
                         service:  model.title
                         username: model.username
                         password: model.password

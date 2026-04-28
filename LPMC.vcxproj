@@ -38,7 +38,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
     <QtInstall>6.10.2_msvc2022_64</QtInstall>
     <!-- network нужен для QNetworkAccessManager если будете добавлять ротацию -->
-    <QtModules>quick;network</QtModules>
+    <QtModules>network;quick;websockets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
     <QtQMLDebugEnable>true</QtQMLDebugEnable>
   </PropertyGroup>
@@ -115,6 +115,7 @@
     <ClCompile Include="PasswordModel.cpp" />
     <ClCompile Include="AppSettings.cpp" />
     <ClCompile Include="EmailSender.cpp" />
+    <ClCompile Include="RotationManager.cpp" />
   </ItemGroup>
   <!-- ── Headers (MOC) ──────────────────────────────────────────────────── -->
   <ItemGroup>
@@ -143,6 +144,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="icon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <QtMoc Include="RotationManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

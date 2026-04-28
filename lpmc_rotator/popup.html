@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LPMC Rotator</title>
+  <style>
+    body {
+      width: 260px;
+      padding: 16px;
+      font-family: 'Segoe UI', sans-serif;
+      background: #1E1E1E;
+      color: #FFFFFF;
+      margin: 0;
+    }
+    h2 { margin: 0 0 12px; font-size: 15px; color: #9900FF; }
+    .status { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #555; }
+    .dot.connected { background: #00C851; }
+    .dot.disconnected { background: #FF5555; }
+    p { font-size: 11px; color: #666; margin: 12px 0 0; }
+  </style>
+</head>
+<body>
+  <h2>🔐 LPMC Rotator</h2>
+  <div class="status">
+    <div class="dot" id="dot"></div>
+    <span id="statusText">Проверка...</span>
+  </div>
+  <p>Порт: ws://localhost:12310</p>
+  <script src="popup.js"></script>
+</body>
+</html>
