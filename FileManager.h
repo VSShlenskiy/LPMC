@@ -24,15 +24,12 @@ class FileManager : public QObject
     Q_OBJECT
 
 private:
-    // Возвращает путь к защищённой папке в AppData
     static QString getDataDirectory()
     {
         QDir dir;
         QString dataPath;
 
 #ifdef Q_OS_WIN
-        // Windows: C:\Users\[Username]\AppData\Local\LPMC\
-        dataPath = QString::fromLocal8Bit(qgetenv("LOCALAPPDATA"));
         if (dataPath.isEmpty()) {
             dataPath = QString::fromLocal8Bit(qgetenv("APPDATA"));
         }
@@ -47,13 +44,11 @@ private:
         return dataPath;
     }
 
-    // Полный путь к конкретному файлу
     static QString getFilePath(const QString& filename)
     {
         return getDataDirectory() + filename;
     }
 
-    // Список всех DAT файлов приложения
     QStringList datFilesList() const
     {
         const QString dir = getDataDirectory();
@@ -65,7 +60,6 @@ private:
         };
     }
 
-    // Надёжное скрытие файла на Windows
     static bool hideFileWindows(const QString& filePath)
     {
 #ifdef Q_OS_WIN
@@ -90,7 +84,6 @@ private:
 #endif
     }
 
-    // Принудительное скрытие всех DAT файлов
     void hideAllDatFiles() const
     {
         for (const QString& filePath : datFilesList()) {
@@ -98,7 +91,6 @@ private:
         }
     }
 
-    // Скрытие конкретного файла с проверкой существования
     static void hideFileIfExists(const QString& filePath)
     {
         if (QFile::exists(filePath)) {

@@ -1,11 +1,3 @@
-// PasswordItem.qml
-// Изменения относительно оригинала:
-//   1. Добавлено свойство itemId (UUID записи)
-//   2. Добавлено свойство rotationState / rotationError
-//   3. Добавлен Connections { target: rotationManager }
-//   4. В btnRow добавлена кнопка 🔄 с анимацией и состояниями
-//   5. Под именем пользователя — строка ошибки (если rotationState === "error")
-
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 
@@ -17,13 +9,11 @@ Rectangle {
     property string url:       ""
     property string username:  ""
     property string password:  ""
-    property string itemId:    ""   // UUID записи — нужен для вызова rotationManager.rotate()
+    property string itemId:    ""   
     property int    itemIndex: -1
 
     signal deleteRequested(int idx)
 
-    // ── Состояние ротации ─────────────────────────────────────────────────
-    // Возможные значения: "idle" | "rotating" | "success" | "error"
     property string rotationState: "idle"
     property string rotationError: ""
 

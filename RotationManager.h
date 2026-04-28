@@ -11,33 +11,14 @@
 class PasswordModel;
 class FileManager;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RotationTask — активная задача смены пароля
-//
-// Хранит все данные задачи до получения ответа от расширения.
-// taskId ≠ entryId: один и тот же entry может ротироваться несколько
-// раз, каждый раз с новым taskId.
-// ─────────────────────────────────────────────────────────────────────────────
 struct RotationTask {
-    QString taskId;          // UUID задачи (ключ в m_tasks)
-    QString entryId;         // UUID записи в PasswordModel
-    QString url;             // URL страницы смены пароля
-    QString newPassword;     // сгенерированный пароль (ещё не применён)
+    QString taskId;          
+    QString entryId;         
+    QString url;             
+    QString newPassword;     
     QTimer* timeoutTimer = nullptr;
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RotationManager — оркестратор автоматической смены паролей
-//
-// Архитектура:
-//   QML → rotate(entryId) → генерируем newPwd → broadcast → Chrome Extension
-//   Chrome Extension → WebSocket → handleResult() → updatePassword() → save
-//
-// Безопасность:
-//   • Сервер слушает только localhost (127.0.0.1)
-//   • Нелокальные соединения отклоняются немедленно
-//   • Пароли никогда не попадают в qDebug/qInfo
-// ─────────────────────────────────────────────────────────────────────────────
 class RotationManager : public QObject
 {
     Q_OBJECT
@@ -59,8 +40,6 @@ public:
     static constexpr int     TASK_TIMEOUT_MS = 120'000; // 2 минуты
 
 public slots:
-    // ── Публичный API (вызывается из QML) ────────────────────────────────
-
     // Запустить ротацию пароля для записи с данным entryId
     Q_INVOKABLE void rotate(const QString& entryId);
 
