@@ -8,15 +8,7 @@
 #include "PasswordModel.h"
 #include "AppSettings.h"
 #include "EmailSender.h"
-#include "RotationManager.h"   // ← ДОБАВЛЕНО
-
-// ─────────────────────────────────────────────────────────────────────────────
-// main.cpp
-// Изменения:
-//   1. Добавлен #include "RotationManager.h"
-//   2. Создан экземпляр RotationManager (получает ссылки на модель и FileManager)
-//   3. Зарегистрирован как context property "rotationManager" для QML
-// ─────────────────────────────────────────────────────────────────────────────
+#include "RotationManager.h"
 
 int main(int argc, char* argv[])
 {
@@ -33,8 +25,6 @@ int main(int argc, char* argv[])
     AppSettings    appSettings;
     EmailSender    emailSender;
 
-    // RotationManager принимает указатели на модель и fileManager.
-    // Порядок создания важен: модель и fileManager должны быть созданы раньше.
     RotationManager rotationManager(&passwordModel, &fileManager);
 
     // ── QML Engine ────────────────────────────────────────────────────────
@@ -45,7 +35,7 @@ int main(int argc, char* argv[])
     engine.rootContext()->setContextProperty("PasswordModel",   &passwordModel);
     engine.rootContext()->setContextProperty("AppSettings",     &appSettings);
     engine.rootContext()->setContextProperty("emailSender",     &emailSender);
-    engine.rootContext()->setContextProperty("rotationManager", &rotationManager); // ← ДОБАВЛЕНО
+    engine.rootContext()->setContextProperty("rotationManager", &rotationManager);
 
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 

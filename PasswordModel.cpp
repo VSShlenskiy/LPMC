@@ -5,11 +5,6 @@
 #include <QJsonObject>
 #include <QUuid>
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PasswordModel.cpp
-// Полная реализация с поддержкой UUID-идентификаторов и обновления паролей
-// ─────────────────────────────────────────────────────────────────────────────
-
 PasswordModel::PasswordModel(QObject* parent)
     : QAbstractListModel(parent)
 {}

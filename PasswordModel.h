@@ -6,12 +6,8 @@
 #include <QJsonObject>
 #include <QUuid>
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PasswordItem — структура одной записи
-// ИЗМЕНЕНИЕ: добавлено поле id (UUID) для стабильной идентификации записей
-// ─────────────────────────────────────────────────────────────────────────────
 struct PasswordItem {
-    QString id;       // уникальный идентификатор (UUID без фигурных скобок)
+    QString id;       
     QString title;
     QString username;
     QString password;
@@ -24,7 +20,7 @@ class PasswordModel : public QAbstractListModel
 
 public:
     enum Roles {
-        IdRole       = Qt::UserRole,      // НОВОЕ
+        IdRole       = Qt::UserRole,     
         TitleRole    = Qt::UserRole + 1,
         UsernameRole,
         PasswordRole,

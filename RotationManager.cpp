@@ -7,13 +7,7 @@
 #include <QUuid>
 #include <QRandomGenerator>
 #include <QDebug>
-#include <utility>   // std::as_const
-
-// ─────────────────────────────────────────────────────────────────────────────
-// RotationManager.cpp
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ── Конструктор / деструктор ──────────────────────────────────────────────────
+#include <utility> 
 
 RotationManager::RotationManager(PasswordModel* model,
                                  FileManager*   fileManager,
