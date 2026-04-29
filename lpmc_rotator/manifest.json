@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "LPMC Password Rotator",
-  "version": "1.0.0",
-  "description": "Автоматическая смена паролей для LPMC Password Manager. Подключается к локальному WebSocket серверу на порту 12310.",
+  "version": "2.0.0",
+  "description": "Автоматическая смена паролей для LPMC Password Manager. Протокол v2: scan → field_mapping → fill.",
 
   "permissions": [
     "scripting",
@@ -39,8 +39,12 @@
 
   "web_accessible_resources": [
     {
-      "resources": ["content.js"],
-      "matches":   ["<all_urls>"]
+      "resources": [
+        "content/scanner.js",
+        "content/filler.js",
+        "content/submit_handler.js"
+      ],
+      "matches": ["<all_urls>"]
     }
   ]
 }

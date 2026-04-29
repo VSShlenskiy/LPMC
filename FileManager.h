@@ -29,7 +29,7 @@ private:
     {
         QDir dir;
         QString dataPath;
-
+        
 #ifdef Q_OS_WIN
         // Windows: C:\Users\[Username]\AppData\Local\LPMC\
         dataPath = QString::fromLocal8Bit(qgetenv("LOCALAPPDATA"));

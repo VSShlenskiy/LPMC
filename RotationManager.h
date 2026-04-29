@@ -76,7 +76,9 @@ signals:
     void rotationStarted(const QString& entryId);
     void rotationSucceeded(const QString& entryId);
     void rotationFailed(const QString& entryId, const QString& reason);
-    void noExtensionConnected();  // расширение не подключено к WS серверу
+    void noExtensionConnected();
+    // Эмитируется когда автоматический маппинг не удался — UI должен запросить у пользователя
+    void fieldMappingRequired(const QString& taskId, const QString& entryId, const QJsonObject& pageData);
 
 private slots:
     void onNewConnection();
@@ -100,6 +102,7 @@ private:
     // Обработчики входящих сообщений от расширения
     void handleResult(const QJsonObject& json);
     void handleError(const QJsonObject& json);
+    void handleFieldMappingRequest(const QJsonObject& json);  // протокол v2
 
     PasswordModel*     m_model;
     FileManager*       m_fileManager;

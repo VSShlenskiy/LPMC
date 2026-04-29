@@ -635,8 +635,8 @@ Rectangle {
                         Row {
                             anchors.centerIn: parent
                             spacing: 6
-                            Text { text: "+"; color: "#9900FF"; font { pixelSize: 16; bold: true }; anchors.verticalCenter: parent.verticalCenter }
-                            Text { text: "Add App Password"; color: "#9900FF"; font { family: "Roboto"; pixelSize: 12; bold: true }; anchors.verticalCenter: parent.verticalCenter }
+                            Text { text: "+"; color: "#9900FF"; font { pixelSize: 16; bold: true } anchors.verticalCenter: parent.verticalCenter }
+                            Text { text: "Add App Password"; color: "#9900FF"; font { family: "Roboto"; pixelSize: 12; bold: true } anchors.verticalCenter: parent.verticalCenter }
                         }
 
                         MouseArea {
