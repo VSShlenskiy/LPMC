@@ -53,7 +53,6 @@ Rectangle {
         }
 
         function onNoExtensionConnected() {
-            // Показываем ошибку только для элемента, который инициировал ротацию
             if (root.rotationState === "rotating") {
                 root.rotationState = "error"
                 root.rotationError = "Расширение браузера не подключено"
@@ -74,6 +73,121 @@ Rectangle {
         onTriggered: {
             root.rotationState = "idle"
             root.rotationError = ""
+        }
+    }
+
+    // ── Диалог подтверждения удаления ────────────────────────────────────
+    Popup {
+        id: deleteConfirmDialog
+        modal: true
+        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
+        
+        // Центрирование относительно родительского окна
+        parent: Overlay.overlay
+        x: Math.round((parent.width - width) / 2)
+        y: Math.round((parent.height - height) / 2)
+        
+        width: 360
+        height: 220
+        
+        background: Rectangle {
+            color: "#1A1A1A"
+            radius: 14
+            border.color: "#333333"
+            border.width: 1
+        }
+        
+        contentItem: Item {
+            anchors.fill: parent
+            
+            Column {
+                anchors.centerIn: parent
+                spacing: 16
+                
+                // Иконка предупреждения
+                Text {
+                    text: "⚠"
+                    color: "#FFAA00"
+                    font.pixelSize: 32
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                
+                // Заголовок
+                Text {
+                    text: "Delete Password Entry"
+                    color: "#FFFFFF"
+                    font { family: "Roboto"; pixelSize: 16; bold: true }
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                
+                // Сообщение
+                Text {
+                    text: "Are you sure you want to delete\n\"" + root.service + "\"?"
+                    color: "#AAAAAA"
+                    font { family: "Roboto"; pixelSize: 13 }
+                    horizontalAlignment: Text.AlignHCenter
+                    wrapMode: Text.WordWrap
+                    width: 280
+                    anchors.horizontalCenter: parent.horizontalCenter
+                }
+                
+                // Кнопки
+                Row {
+                    spacing: 12
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    
+                    // Кнопка Cancel
+                    Button {
+                        width: 120
+                        height: 38
+                        hoverEnabled: true
+                        
+                        background: Rectangle {
+                            color: parent.hovered ? "#333333" : "#222222"
+                            radius: 8
+                            border.color: "#444444"
+                            border.width: 1
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                        }
+                        
+                        contentItem: Text {
+                            text: "Cancel"
+                            color: "#AAAAAA"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font { family: "Roboto"; pixelSize: 13; bold: true }
+                        }
+                        
+                        onClicked: deleteConfirmDialog.close()
+                    }
+                    
+                    // Кнопка Delete
+                    Button {
+                        width: 120
+                        height: 38
+                        hoverEnabled: true
+                        
+                        background: Rectangle {
+                            color: parent.hovered ? "#cc2222" : "#aa2222"
+                            radius: 8
+                            Behavior on color { ColorAnimation { duration: 100 } }
+                        }
+                        
+                        contentItem: Text {
+                            text: "Delete"
+                            color: "#FFFFFF"
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font { family: "Roboto"; pixelSize: 13; bold: true }
+                        }
+                        
+                        onClicked: {
+                            deleteConfirmDialog.close()
+                            root.deleteRequested(root.itemIndex)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -160,7 +274,7 @@ Rectangle {
             }
         }
 
-        // Строка 3: ошибка ротации (видна только при state === "error")
+        // Строка 3: ошибка ротации
         Text {
             visible: root.rotationState === "error" && root.rotationError.length > 0
             text:    "⚠  " + root.rotationError
@@ -245,11 +359,8 @@ Rectangle {
         Rectangle {
             id: rotateBtn
             width: 28; height: 28; radius: 6
-
-            // Кнопку показываем только если задан URL
             visible: root.url.length > 0
 
-            // Цвет фона по состоянию
             color: {
                 if (root.rotationState === "rotating") return "#1A1A2E"
                 if (root.rotationState === "success")  return "#0D2E1A"
@@ -258,7 +369,6 @@ Rectangle {
             }
             Behavior on color { ColorAnimation { duration: 150 } }
 
-            // Иконка
             Text {
                 id: rotateIcon
                 anchors.centerIn: parent
@@ -278,7 +388,6 @@ Rectangle {
                 }
                 Behavior on color { ColorAnimation { duration: 150 } }
 
-                // Вращение иконки в процессе ротации
                 RotationAnimation on rotation {
                     running:  root.rotationState === "rotating"
                     loops:    Animation.Infinite
@@ -286,7 +395,6 @@ Rectangle {
                 }
             }
 
-            // Tooltip подсказка
             ToolTip {
                 id: rotateTip
                 visible: rotateMouse.containsMouse
@@ -303,7 +411,6 @@ Rectangle {
             MouseArea {
                 id: rotateMouse; anchors.fill: parent
                 hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                // Блокируем повторный клик пока идёт ротация
                 enabled: root.rotationState === "idle"
 
                 onClicked: {
@@ -334,7 +441,7 @@ Rectangle {
             MouseArea {
                 id: deleteMouse; anchors.fill: parent
                 hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                onClicked: root.deleteRequested(root.itemIndex)
+                onClicked: deleteConfirmDialog.open()
             }
         }
     }
