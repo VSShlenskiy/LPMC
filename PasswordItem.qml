@@ -127,18 +127,26 @@ Rectangle {
         }
 
         // Строка 2: логин + пароль (маскированный)
-        Row {
-            spacing: 10
+        Item {
             width: parent.width
+            height: pwdText.implicitHeight
 
             Text {
-                text:  root.username
+                id: usernameText
+                text: root.username
                 color: "#888888"
                 font { family: "Roboto"; pixelSize: 12 }
                 elide: Text.ElideRight
-                width: parent.width - 100
+                anchors {
+                    left: parent.left
+                    right: pwdText.left
+                    rightMargin: 10
+                }
+                verticalAlignment: Text.AlignVCenter
             }
+
             Text {
+                id: pwdText
                 text: showPwd.checked
                     ? root.password
                     : "\u2022".repeat(Math.min(root.password.length, 10))
@@ -147,6 +155,8 @@ Rectangle {
                     family: "Roboto"; pixelSize: 12
                     letterSpacing: showPwd.checked ? 0 : 3
                 }
+                anchors.right: parent.right
+                elide: Text.ElideRight
             }
         }
 

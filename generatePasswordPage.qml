@@ -18,18 +18,33 @@ Rectangle {
 
         Flickable {
             id: mainFlickable
-            anchors { fill: parent; topMargin: 16; leftMargin: 16; rightMargin: 16; bottomMargin: 16 }
+            anchors {
+                fill: parent
+                topMargin: 16
+                leftMargin: 16
+                rightMargin: 4
+                bottomMargin: 16
+            }
+            contentWidth: mainColumn.width
             contentHeight: mainColumn.implicitHeight + 32
             clip: true
             boundsBehavior: Flickable.StopAtBounds
+
             ScrollBar.vertical: ScrollBar {
+                id: scrollBar
                 policy: ScrollBar.AsNeeded
-                contentItem: Rectangle { radius: 2; color: "#9900FF"; implicitWidth: 4 }
+                anchors.left: parent.right
+                anchors.leftMargin: 4
+                contentItem: Rectangle {
+                    radius: 2
+                    color: "#9900FF"
+                    implicitWidth: 4
+                }
             }
 
             Column {
                 id: mainColumn
-                width: parent.width
+                width: parent.width - 16
                 spacing: 14
 
                 Item { width: 1; height: 8 }
@@ -357,7 +372,6 @@ Rectangle {
                             if (fileManager.savePasswords(json)) {
                                 stackView.pop()
                             } else {
-                                // Roll back
                                 PasswordModel.removePassword(PasswordModel.count() - 1)
                                 errorText.text = "Failed to save. Check disk permissions."
                             }
