@@ -67,6 +67,9 @@
     <None Include="settingPage.qml">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="EditPassword.qml">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="PasswordModel.h">

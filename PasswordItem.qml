@@ -4,335 +4,253 @@ import QtQuick.Controls 2.15
 Rectangle {
     id: root
 
-    // ── Свойства ──────────────────────────────────────────────────────────
     property string service:   ""
     property string url:       ""
     property string username:  ""
     property string password:  ""
-    property string itemId:    ""   
+    property string itemId:    ""
     property int    itemIndex: -1
+    property string category:  ""
 
     signal deleteRequested(int idx)
+    signal editRequested(var passwordData)
 
-    property string rotationState: "idle"
-    property string rotationError: ""
-
-    // ── Размеры и стиль ───────────────────────────────────────────────────
-    width:  parent ? parent.width : 600
-    height: rotationState === "error" && rotationError.length > 0 ? 82 : 66
-    color:  hoverArea.containsMouse ? "#242424" : "#1E1E1E"
+    width: parent ? parent.width : 600
+    height: 66
+    color: hoverArea.containsMouse ? "#242424" : "#1E1E1E"
     radius: 8
+    Behavior on color { ColorAnimation { duration: 120 } }
 
-    Behavior on color  { ColorAnimation { duration: 120 } }
-    Behavior on height { NumberAnimation { duration: 150; easing.type: Easing.OutQuad } }
+    // ── Диалог подтверждения удаления ────────────────────────────────────────
+    Rectangle {
+        id: deleteConfirm
+        visible: false
+        anchors.fill: parent
+        radius: 8
+        color: "#1E1E1E"
+        z: 10
 
-    // ── Подписка на сигналы rotationManager ──────────────────────────────
-    Connections {
-        target: rotationManager
+        Row {
+            anchors.centerIn: parent
+            spacing: 12
 
-        function onRotationStarted(entryId) {
-            if (entryId === root.itemId) {
-                root.rotationState = "rotating"
-                root.rotationError = ""
+            Text {
+                text: "Удалить «" + root.service + "»?"
+                color: "#FFFFFF"
+                font.pixelSize: 13
+                font.family: "Roboto"
+                anchors.verticalCenter: parent.verticalCenter
             }
-        }
 
-        function onRotationSucceeded(entryId) {
-            if (entryId === root.itemId) {
-                root.rotationState = "success"
-                successResetTimer.restart()
-            }
-        }
-
-        function onRotationFailed(entryId, reason) {
-            if (entryId === root.itemId) {
-                root.rotationState = "error"
-                root.rotationError = reason
-                errorResetTimer.restart()
-            }
-        }
-
-        function onNoExtensionConnected() {
-            if (root.rotationState === "rotating") {
-                root.rotationState = "error"
-                root.rotationError = "Расширение браузера не подключено"
-                errorResetTimer.restart()
-            }
-        }
-    }
-
-    Timer {
-        id: successResetTimer
-        interval: 3000
-        onTriggered: root.rotationState = "idle"
-    }
-
-    Timer {
-        id: errorResetTimer
-        interval: 5000
-        onTriggered: {
-            root.rotationState = "idle"
-            root.rotationError = ""
-        }
-    }
-
-    // ── Диалог подтверждения удаления ────────────────────────────────────
-    Popup {
-        id: deleteConfirmDialog
-        modal: true
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-        
-        // Центрирование относительно родительского окна
-        parent: Overlay.overlay
-        x: Math.round((parent.width - width) / 2)
-        y: Math.round((parent.height - height) / 2)
-        
-        width: 360
-        height: 220
-        
-        background: Rectangle {
-            color: "#1A1A1A"
-            radius: 14
-            border.color: "#333333"
-            border.width: 1
-        }
-        
-        contentItem: Item {
-            anchors.fill: parent
-            
-            Column {
-                anchors.centerIn: parent
-                spacing: 16
-                
-                // Иконка предупреждения
+            Rectangle {
+                width: 70
+                height: 28
+                radius: 6
+                color: yesMouse.containsMouse ? "#8B0000" : "#5A1A1A"
+                Behavior on color { ColorAnimation { duration: 100 } }
                 Text {
-                    text: "⚠"
-                    color: "#FFAA00"
-                    font.pixelSize: 32
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "Удалить"
+                    color: "#FF6666"
+                    font.pixelSize: 12
+                    font.bold: true
+                    anchors.centerIn: parent
                 }
-                
-                // Заголовок
-                Text {
-                    text: "Delete Password Entry"
-                    color: "#FFFFFF"
-                    font { family: "Roboto"; pixelSize: 16; bold: true }
-                    anchors.horizontalCenter: parent.horizontalCenter
+                MouseArea {
+                    id: yesMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        deleteConfirm.visible = false
+                        root.deleteRequested(root.itemIndex)
+                    }
                 }
-                
-                // Сообщение
+            }
+
+            Rectangle {
+                width: 60
+                height: 28
+                radius: 6
+                color: noMouse.containsMouse ? "#3A3A3A" : "#2A2A2A"
+                Behavior on color { ColorAnimation { duration: 100 } }
                 Text {
-                    text: "Are you sure you want to delete\n\"" + root.service + "\"?"
+                    text: "Отмена"
                     color: "#AAAAAA"
-                    font { family: "Roboto"; pixelSize: 13 }
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.WordWrap
-                    width: 280
-                    anchors.horizontalCenter: parent.horizontalCenter
+                    font.pixelSize: 12
+                    anchors.centerIn: parent
                 }
-                
-                // Кнопки
-                Row {
-                    spacing: 12
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    
-                    // Кнопка Cancel
-                    Button {
-                        width: 120
-                        height: 38
-                        hoverEnabled: true
-                        
-                        background: Rectangle {
-                            color: parent.hovered ? "#333333" : "#222222"
-                            radius: 8
-                            border.color: "#444444"
-                            border.width: 1
-                            Behavior on color { ColorAnimation { duration: 100 } }
-                        }
-                        
-                        contentItem: Text {
-                            text: "Cancel"
-                            color: "#AAAAAA"
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                            font { family: "Roboto"; pixelSize: 13; bold: true }
-                        }
-                        
-                        onClicked: deleteConfirmDialog.close()
-                    }
-                    
-                    // Кнопка Delete
-                    Button {
-                        width: 120
-                        height: 38
-                        hoverEnabled: true
-                        
-                        background: Rectangle {
-                            color: parent.hovered ? "#cc2222" : "#aa2222"
-                            radius: 8
-                            Behavior on color { ColorAnimation { duration: 100 } }
-                        }
-                        
-                        contentItem: Text {
-                            text: "Delete"
-                            color: "#FFFFFF"
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                            font { family: "Roboto"; pixelSize: 13; bold: true }
-                        }
-                        
-                        onClicked: {
-                            deleteConfirmDialog.close()
-                            root.deleteRequested(root.itemIndex)
-                        }
-                    }
+                MouseArea {
+                    id: noMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: deleteConfirm.visible = false
                 }
             }
         }
     }
 
-    // ── Service icon ──────────────────────────────────────────────────────
     Rectangle {
         id: iconRect
-        width: 36; height: 36; radius: 8
+        width: 36
+        height: 36
+        radius: 8
         color: "#2A2A2A"
         anchors {
-            left:          parent.left
-            leftMargin:    12
+            left: parent.left
+            leftMargin: 12
             verticalCenter: parent.verticalCenter
         }
-
         Text {
-            text:  root.service.length > 0 ? root.service.charAt(0).toUpperCase() : "?"
+            text: root.service.length > 0 ? root.service.charAt(0).toUpperCase() : "?"
             color: "#9900FF"
-            font { pixelSize: 16; bold: true }
+            font.pixelSize: 16
+            font.bold: true
             anchors.centerIn: parent
         }
     }
 
-    // ── Text info + error row ─────────────────────────────────────────────
     Column {
+        id: infoCol
         anchors {
-            left:          iconRect.right;  leftMargin:  12
-            right:         btnRow.left;     rightMargin: 8
+            left: iconRect.right
+            leftMargin: 12
+            right: btnRow.left
+            rightMargin: 8
             verticalCenter: parent.verticalCenter
         }
         spacing: 3
 
-        // Строка 1: название + URL
         Row {
             spacing: 8
             width: parent.width
-
             Text {
-                text:  root.service
+                text: root.service
                 color: "#FFFFFF"
-                font { family: "Roboto"; pixelSize: 14; bold: true }
+                font.family: "Roboto"
+                font.pixelSize: 14
+                font.bold: true
                 elide: Text.ElideRight
+                width: Math.min(implicitWidth, parent.width * 0.5)
                 maximumLineCount: 1
             }
             Text {
-                text:  root.url
+                text: root.url
                 color: "#555555"
-                font { family: "Roboto"; pixelSize: 11 }
+                font.family: "Roboto"
+                font.pixelSize: 11
                 elide: Text.ElideRight
-                width: parent.width - 120
+                width: parent.width - Math.min(implicitWidth, parent.width * 0.5) - 8
             }
         }
 
-        // Строка 2: логин + пароль (маскированный)
-        Item {
+        Row {
+            spacing: 10
             width: parent.width
-            height: pwdText.implicitHeight
-
             Text {
-                id: usernameText
                 text: root.username
                 color: "#888888"
-                font { family: "Roboto"; pixelSize: 12 }
+                font.family: "Roboto"
+                font.pixelSize: 12
                 elide: Text.ElideRight
-                anchors {
-                    left: parent.left
-                    right: pwdText.left
-                    rightMargin: 10
-                }
-                verticalAlignment: Text.AlignVCenter
+                width: parent.width * 0.45
             }
-
             Text {
-                id: pwdText
-                text: showPwd.checked
-                    ? root.password
-                    : "\u2022".repeat(Math.min(root.password.length, 10))
+                text: showPwd.checked ? root.password : "\u2022".repeat(Math.min(root.password.length, 10))
                 color: "#9900FF"
-                font {
-                    family: "Roboto"; pixelSize: 12
-                    letterSpacing: showPwd.checked ? 0 : 3
-                }
-                anchors.right: parent.right
+                font.family: "Roboto"
+                font.pixelSize: 12
+                font.letterSpacing: showPwd.checked ? 0 : 3
                 elide: Text.ElideRight
+                width: parent.width * 0.55
             }
-        }
-
-        // Строка 3: ошибка ротации
-        Text {
-            visible: root.rotationState === "error" && root.rotationError.length > 0
-            text:    "⚠  " + root.rotationError
-            color:   "#FF5555"
-            font { family: "Roboto"; pixelSize: 10 }
-            width: parent.width
-            elide: Text.ElideRight
-
-            Behavior on opacity { NumberAnimation { duration: 200 } }
-            opacity: visible ? 1.0 : 0.0
         }
     }
 
-    // ── Button row ────────────────────────────────────────────────────────
     Row {
         id: btnRow
         anchors {
-            right:         parent.right;  rightMargin: 12
+            right: parent.right
+            rightMargin: 12
             verticalCenter: parent.verticalCenter
         }
         spacing: 6
 
-        // ── Показать/скрыть пароль ────────────────────────────────────────
+        // ✏ Edit
+        Rectangle {
+            width: 32
+            height: 28
+            radius: 6
+            color: editMouse.containsMouse ? "#3A1A6A" : "#2A2A2A"
+            Behavior on color { ColorAnimation { duration: 100 } }
+            Text {
+                text: "\u270F"
+                color: editMouse.containsMouse ? "#BB44FF" : "#888888"
+                font.pixelSize: 14
+                anchors.centerIn: parent
+                Behavior on color { ColorAnimation { duration: 100 } }
+            }
+            MouseArea {
+                id: editMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.editRequested({
+                    itemId:    root.itemId,
+                    itemIndex: root.itemIndex,
+                    service:   root.service,
+                    username:  root.username,
+                    password:  root.password,
+                    url:       root.url,
+                    category:  root.category
+                })
+            }
+            ToolTip { visible: editMouse.containsMouse; text: "Редактировать запись"; delay: 500 }
+        }
+
+        // 👁 Show/hide
         Rectangle {
             id: showPwd
             property bool checked: false
-            width: 32; height: 28; radius: 6
+            width: 32
+            height: 28
+            radius: 6
             color: showPwdMouse.containsMouse ? "#3A3A3A" : "#2A2A2A"
             Behavior on color { ColorAnimation { duration: 100 } }
-
             Text {
                 text: showPwd.checked ? "\uD83D\uDE48" : "\uD83D\uDC41"
                 font.pixelSize: 14
                 anchors.centerIn: parent
             }
             MouseArea {
-                id: showPwdMouse; anchors.fill: parent
-                hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                id: showPwdMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
                 onClicked: showPwd.checked = !showPwd.checked
             }
         }
 
-        // ── Копировать пароль ─────────────────────────────────────────────
+        // COPY
         Rectangle {
-            id: copyBtn
-            width: 48; height: 28; radius: 6
+            width: 48
+            height: 28
+            radius: 6
             color: copyMouse.containsMouse ? "#3A3A3A" : "#2A2A2A"
             Behavior on color { ColorAnimation { duration: 100 } }
-
             Text {
                 id: copyLabel
-                text: "COPY"; color: "#CCCCCC"
-                font { pixelSize: 10; bold: true }
+                text: "COPY"
+                color: "#CCCCCC"
+                font.pixelSize: 10
+                font.bold: true
                 anchors.centerIn: parent
             }
             MouseArea {
-                id: copyMouse; anchors.fill: parent
-                hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                id: copyMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     var dummy = Qt.createQmlObject(
                         'import QtQuick 2.15; TextEdit { visible: false }',
@@ -341,96 +259,28 @@ Rectangle {
                     dummy.selectAll()
                     dummy.copy()
                     dummy.destroy()
-                    copyLabel.text  = "✓ OK"
+                    copyLabel.text = "\u2713 OK"
                     copyLabel.color = "#00C851"
                     copyResetTimer.restart()
                 }
             }
             Timer {
-                id: copyResetTimer; interval: 1500
+                id: copyResetTimer
+                interval: 1500
                 onTriggered: {
-                    copyLabel.text  = "COPY"
+                    copyLabel.text = "COPY"
                     copyLabel.color = "#CCCCCC"
                 }
             }
         }
 
-        // ── Кнопка ротации пароля 🔄 ──────────────────────────────────────
+        // ✕ Delete
         Rectangle {
-            id: rotateBtn
-            width: 28; height: 28; radius: 6
-            visible: root.url.length > 0
-
-            color: {
-                if (root.rotationState === "rotating") return "#1A1A2E"
-                if (root.rotationState === "success")  return "#0D2E1A"
-                if (root.rotationState === "error")    return "#2E1A1A"
-                return rotateMouse.containsMouse ? "#3A3A3A" : "#2A2A2A"
-            }
-            Behavior on color { ColorAnimation { duration: 150 } }
-
-            Text {
-                id: rotateIcon
-                anchors.centerIn: parent
-                font.pixelSize: 14
-
-                text: {
-                    if (root.rotationState === "rotating") return "⏳"
-                    if (root.rotationState === "success")  return "✓"
-                    if (root.rotationState === "error")    return "✕"
-                    return "🔄"
-                }
-
-                color: {
-                    if (root.rotationState === "success") return "#00C851"
-                    if (root.rotationState === "error")   return "#FF5555"
-                    return rotateMouse.containsMouse ? "#FFFFFF" : "#AAAAAA"
-                }
-                Behavior on color { ColorAnimation { duration: 150 } }
-
-                RotationAnimation on rotation {
-                    running:  root.rotationState === "rotating"
-                    loops:    Animation.Infinite
-                    from:     0; to: 360; duration: 1200
-                }
-            }
-
-            ToolTip {
-                id: rotateTip
-                visible: rotateMouse.containsMouse
-                delay:   500
-                text: {
-                    if (root.rotationState === "idle")     return "Автозамена пароля через браузер"
-                    if (root.rotationState === "rotating") return "Выполняется смена пароля..."
-                    if (root.rotationState === "success")  return "Пароль успешно изменён!"
-                    if (root.rotationState === "error")    return root.rotationError || "Ошибка"
-                    return ""
-                }
-            }
-
-            MouseArea {
-                id: rotateMouse; anchors.fill: parent
-                hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                enabled: root.rotationState === "idle"
-
-                onClicked: {
-                    if (root.itemId.length === 0) {
-                        console.warn("[LPMC] PasswordItem: itemId is empty, cannot rotate. " +
-                                     "Убедитесь что в ListView передаётся itemId: model.itemId")
-                        return
-                    }
-                    rotationManager.rotate(root.itemId)
-                }
-            }
-        }
-
-        // ── Удалить запись ────────────────────────────────────────────────
-        Rectangle {
-            id: deleteBtn
-            width: 28; height: 28; radius: 6
+            width: 28
+            height: 28
+            radius: 6
             color: deleteMouse.containsMouse ? "#5A1A1A" : "#2A2A2A"
             Behavior on color { ColorAnimation { duration: 100 } }
-
             Text {
                 text: "\u2715"
                 color: deleteMouse.containsMouse ? "#FF5555" : "#666666"
@@ -439,14 +289,15 @@ Rectangle {
                 Behavior on color { ColorAnimation { duration: 100 } }
             }
             MouseArea {
-                id: deleteMouse; anchors.fill: parent
-                hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                onClicked: deleteConfirmDialog.open()
+                id: deleteMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: deleteConfirm.visible = true
             }
         }
     }
 
-    // ── Hover detector ────────────────────────────────────────────────────
     MouseArea {
         id: hoverArea
         anchors.fill: parent

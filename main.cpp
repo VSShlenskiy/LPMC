@@ -3,6 +3,7 @@
 #include <QQmlContext>
 #include <QIcon>
 #include <QDebug>
+#include <QQuickItem>
 
 #include "FileManager.h"
 #include "PasswordModel.h"
@@ -42,6 +43,15 @@ int main(int argc, char* argv[])
     if (engine.rootObjects().isEmpty()) {
         qCritical() << "Failed to load main.qml";
         return -1;
+    }
+
+    // ── Получаем stackView и делаем его доступным глобально ──────────────
+    QObject* root = engine.rootObjects().first();
+    QObject* stackView = root->findChild<QObject*>("stackView");
+    if (stackView) {
+        engine.rootContext()->setContextProperty("stackView", stackView);
+    } else {
+        qCritical() << "stackView not found in main.qml";
     }
 
     return app.exec();

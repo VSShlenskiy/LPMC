@@ -30,6 +30,7 @@ QVariant PasswordModel::data(const QModelIndex& index, int role) const
     case UsernameRole: return item.username;
     case PasswordRole: return item.password;
     case WebsiteRole:  return item.website;
+    case CategoryRole: return item.category;
     default:           return {};
     }
 }
@@ -37,11 +38,12 @@ QVariant PasswordModel::data(const QModelIndex& index, int role) const
 QHash<int, QByteArray> PasswordModel::roleNames() const
 {
     QHash<int, QByteArray> hash;
-    hash[IdRole]       = "itemId";     // в QML: model.itemId
+    hash[IdRole]       = "itemId";
     hash[TitleRole]    = "title";
     hash[UsernameRole] = "username";
     hash[PasswordRole] = "password";
     hash[WebsiteRole]  = "website";
+    hash[CategoryRole] = "category";
     return hash;
 }
 
@@ -50,15 +52,16 @@ QHash<int, QByteArray> PasswordModel::roleNames() const
 void PasswordModel::addPassword(const QString& title,
                                 const QString& username,
                                 const QString& password,
-                                const QString& website)
+                                const QString& website,
+                                const QString& category)
 {
     PasswordItem item;
-    // Генерируем UUID без фигурных скобок: "550e8400-e29b-41d4-a716-446655440000"
     item.id       = QUuid::createUuid().toString(QUuid::WithoutBraces);
     item.title    = title;
     item.username = username;
     item.password = password;
     item.website  = website;
+    item.category = category;
 
     beginInsertRows(QModelIndex(), items.size(), items.size());
     items.append(item);
@@ -74,6 +77,27 @@ void PasswordModel::removePassword(int index)
     endRemoveRows();
 }
 
+bool PasswordModel::updatePasswordFull(const QString& id,
+                                       const QString& title,
+                                       const QString& username,
+                                       const QString& password,
+                                       const QString& website,
+                                       const QString& category)
+{
+    int idx = indexById(id);
+    if (idx < 0) return false;
+
+    items[idx].title    = title;
+    items[idx].username = username;
+    items[idx].password = password;
+    items[idx].website  = website;
+    items[idx].category = category;
+
+    QModelIndex mi = index(idx);
+    emit dataChanged(mi, mi, { TitleRole, UsernameRole, PasswordRole, WebsiteRole, CategoryRole });
+    return true;
+}
+
 // ── Сериализация ──────────────────────────────────────────────────────────────
 
 QString PasswordModel::toJson() const
@@ -86,6 +110,7 @@ QString PasswordModel::toJson() const
         obj["username"] = item.username;
         obj["password"] = item.password;
         obj["website"]  = item.website;
+        obj["category"] = item.category;
         arr.append(obj);
     }
     return QString::fromUtf8(QJsonDocument(arr).toJson(QJsonDocument::Compact));
@@ -105,8 +130,7 @@ void PasswordModel::fromJson(const QString& jsonStr)
         QJsonObject obj = val.toObject();
 
         PasswordItem item;
-        // Если id отсутствует (старые данные без UUID) — генерируем новый
-        item.id       = obj["id"].toString();
+        item.id = obj["id"].toString();
         if (item.id.isEmpty())
             item.id = QUuid::createUuid().toString(QUuid::WithoutBraces);
 
@@ -114,6 +138,7 @@ void PasswordModel::fromJson(const QString& jsonStr)
         item.username = obj["username"].toString();
         item.password = obj["password"].toString();
         item.website  = obj["website"].toString();
+        item.category = obj["category"].toString("General");
         items.append(item);
     }
 
@@ -129,7 +154,6 @@ bool PasswordModel::updatePassword(const QString& id, const QString& newPassword
 
     items[idx].password = newPassword;
 
-    // Уведомляем View об изменении конкретной ячейки
     QModelIndex mi = index(idx);
     emit dataChanged(mi, mi, { PasswordRole });
     return true;

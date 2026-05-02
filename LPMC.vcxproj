@@ -126,6 +126,7 @@
   </ItemGroup>
   <!-- ── QML files (visible in Solution Explorer, not compiled) ─────────── -->
   <ItemGroup>
+    <None Include="EditPassword.qml" />
     <None Include="main.qml" />
     <None Include="TitleBar.qml" />
     <None Include="admission.qml" />

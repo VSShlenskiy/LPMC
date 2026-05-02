@@ -7,11 +7,12 @@
 #include <QUuid>
 
 struct PasswordItem {
-    QString id;       
+    QString id;
     QString title;
     QString username;
     QString password;
     QString website;
+    QString category;
 };
 
 class PasswordModel : public QAbstractListModel
@@ -20,11 +21,12 @@ class PasswordModel : public QAbstractListModel
 
 public:
     enum Roles {
-        IdRole       = Qt::UserRole,     
+        IdRole       = Qt::UserRole,
         TitleRole    = Qt::UserRole + 1,
         UsernameRole,
         PasswordRole,
-        WebsiteRole
+        WebsiteRole,
+        CategoryRole
     };
 
     explicit PasswordModel(QObject* parent = nullptr);
@@ -38,9 +40,17 @@ public:
     Q_INVOKABLE void addPassword(const QString& title,
                                  const QString& username,
                                  const QString& password,
-                                 const QString& website);
+                                 const QString& website,
+                                 const QString& category = "General");
 
     Q_INVOKABLE void removePassword(int index);
+
+    Q_INVOKABLE bool updatePasswordFull(const QString& id,
+                                        const QString& title,
+                                        const QString& username,
+                                        const QString& password,
+                                        const QString& website,
+                                        const QString& category);
 
     // ── Сериализация ─────────────────────────────────────────────────────
     Q_INVOKABLE QString toJson() const;
@@ -48,7 +58,6 @@ public:
     Q_INVOKABLE int count() const { return items.size(); }
 
     // ── Методы для RotationManager ────────────────────────────────────────
-    // Обновить пароль по UUID записи; возвращает false если запись не найдена
     Q_INVOKABLE bool    updatePassword(const QString& id, const QString& newPassword);
     Q_INVOKABLE QString getWebsite(const QString& id) const;
     Q_INVOKABLE QString getPassword(const QString& id) const;

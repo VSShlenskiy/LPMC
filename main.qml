@@ -17,6 +17,7 @@ Window {
 
     StackView {
         id: stackView
+        objectName: "stackView"
         anchors {
             top:    parent.top
             topMargin: 32
@@ -26,7 +27,6 @@ Window {
         }
 
         initialItem: Item {
-            // Welcome screen
             Rectangle {
                 anchors.fill: parent
                 color: "#111111"
@@ -40,11 +40,7 @@ Window {
                         topMargin: 120
                         horizontalCenter: parent.horizontalCenter
                     }
-                    font {
-                        family: "Roboto"
-                        pixelSize: 56
-                        bold: true
-                    }
+                    font { family: "Roboto"; pixelSize: 56; bold: true }
                     opacity: 0
                     scale: 0.8
 
