@@ -399,19 +399,34 @@ Rectangle {
                     font { family: "Roboto"; pixelSize: 11; bold: true }
                 }
 
-                Repeater {
+                // Исправленный список с кнопками
+                ListView {
+                    width: parent.width
+                    height: Math.min(count * 52, 200)
+                    clip: true
+                    spacing: 6
                     model: appPasswordsModel
+                    
                     delegate: Rectangle {
-                        width: parent.width; height: 44; radius: 8
+                        width: parent.width
+                        height: 44
+                        radius: 8
                         color: "#0A0A0A"
-                        border.color: "#1E1E1E"; border.width: 1
+                        border.color: "#1E1E1E"
+                        border.width: 1
 
                         Row {
-                            anchors { left: parent.left; leftMargin: 10; right: parent.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
+                            anchors { 
+                                left: parent.left
+                                leftMargin: 10
+                                right: parent.right
+                                rightMargin: 8
+                                verticalCenter: parent.verticalCenter 
+                            }
                             spacing: 6
 
                             Column {
-                                width: parent.width - 60
+                                width: parent.width - 72
                                 anchors.verticalCenter: parent.verticalCenter
 
                                 Text {
@@ -429,16 +444,29 @@ Rectangle {
                                 }
                             }
 
+                            // Test button
                             Rectangle {
-                                width: 36; height: 28; radius: 6
+                                width: 28
+                                height: 28
+                                radius: 6
                                 color: testBtnMa.containsMouse ? "#1A1A1A" : "transparent"
-                                border.color: "#333333"; border.width: 1
+                                border.color: "#333333"
+                                border.width: 1
+                                anchors.verticalCenter: parent.verticalCenter
                                 Behavior on color { ColorAnimation { duration: 100 } }
 
-                                Text { text: "▶"; color: "#9900FF"; font.pixelSize: 11; anchors.centerIn: parent }
+                                Text { 
+                                    text: "▶"
+                                    color: "#9900FF"
+                                    font.pixelSize: 11
+                                    anchors.centerIn: parent 
+                                }
 
                                 MouseArea {
-                                    id: testBtnMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                    id: testBtnMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         var email = recoveryEmailField.text
                                         var pwd = fileManager.getSmtpAppPassword(model.domain)
@@ -453,16 +481,29 @@ Rectangle {
                                 ToolTip.delay: 600
                             }
 
+                            // Delete button
                             Rectangle {
-                                width: 28; height: 28; radius: 6
+                                width: 28
+                                height: 28
+                                radius: 6
                                 color: delBtnMa.containsMouse ? "#3a0000" : "transparent"
-                                border.color: "#330000"; border.width: 1
+                                border.color: "#330000"
+                                border.width: 1
+                                anchors.verticalCenter: parent.verticalCenter
                                 Behavior on color { ColorAnimation { duration: 100 } }
 
-                                Text { text: "✕"; color: "#FF4444"; font.pixelSize: 11; anchors.centerIn: parent }
+                                Text { 
+                                    text: "✕"
+                                    color: "#FF4444"
+                                    font.pixelSize: 11
+                                    anchors.centerIn: parent 
+                                }
 
                                 MouseArea {
-                                    id: delBtnMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                    id: delBtnMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
                                     onClicked: {
                                         fileManager.deleteSmtpAppPassword(model.domain)
                                         appPasswordsModel.reload()
@@ -511,10 +552,15 @@ Rectangle {
         // ── Auto Password Rotation column ─────────────────────────────────────
 
         Rectangle {
+            id: rotationColumn
             width: (parent.width - 14) / 2
             height: parent.height
             color: "#111111"
             radius: 12
+
+            // Локальные свойства для немедленного отклика UI
+            property string localRotationInterval: AppSettings.rotationInterval
+            property bool localAutoRotationEnabled: AppSettings.autoRotationEnabled
 
             Column {
                 anchors { top: parent.top; left: parent.left; right: parent.right; margins: 18 }
@@ -558,25 +604,37 @@ Rectangle {
                         ]
 
                         delegate: Rectangle {
+                            id: intervalButton
                             width: (parent.width - 16) / 3
-                            height: 36; radius: 8
-                            color: intervalMa.containsMouse
-                                ? "#1A0033"
-                                : (AppSettings.rotationInterval === modelData.value ? "#1A0033" : "#0A0A0A")
-                            border.color: AppSettings.rotationInterval === modelData.value ? "#9900FF" : "#333333"
+                            height: 36
+                            radius: 8
+                            property bool isSelected: rotationColumn.localRotationInterval === modelData.value
+                            property bool isHovered: intervalMa.containsMouse
+                            
+                            color: {
+                                if (isHovered) return "#1A0033"
+                                return isSelected ? "#1A0033" : "#0A0A0A"
+                            }
+                            border.color: isSelected ? "#9900FF" : "#333333"
                             border.width: 1
                             Behavior on color { ColorAnimation { duration: 100 } }
 
                             Text {
                                 text: modelData.label
-                                color: AppSettings.rotationInterval === modelData.value ? "#9900FF" : "#AAAAAA"
+                                color: intervalButton.isSelected ? "#9900FF" : "#AAAAAA"
                                 font { family: "Roboto"; pixelSize: 12 }
                                 anchors.centerIn: parent
                             }
 
                             MouseArea {
-                                id: intervalMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                                onClicked: AppSettings.rotationInterval = modelData.value
+                                id: intervalMa
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: {
+                                    rotationColumn.localRotationInterval = modelData.value
+                                    AppSettings.rotationInterval = modelData.value
+                                }
                             }
                         }
                     }
@@ -597,22 +655,31 @@ Rectangle {
                     }
 
                     Rectangle {
-                        width: 44; height: 24; radius: 12
-                        color: AppSettings.autoRotationEnabled ? "#9900FF" : "#333333"
+                        id: toggleSwitch
+                        width: 44
+                        height: 24
+                        radius: 12
+                        color: rotationColumn.localAutoRotationEnabled ? "#9900FF" : "#333333"
                         anchors.verticalCenter: parent.verticalCenter
                         Behavior on color { ColorAnimation { duration: 150 } }
 
                         Rectangle {
-                            width: 18; height: 18; radius: 9
+                            width: 18
+                            height: 18
+                            radius: 9
                             color: "#FFFFFF"
                             anchors.verticalCenter: parent.verticalCenter
-                            x: AppSettings.autoRotationEnabled ? 22 : 4
+                            x: rotationColumn.localAutoRotationEnabled ? 22 : 4
                             Behavior on x { NumberAnimation { duration: 150 } }
                         }
 
                         MouseArea {
-                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: AppSettings.autoRotationEnabled = !AppSettings.autoRotationEnabled
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                rotationColumn.localAutoRotationEnabled = !rotationColumn.localAutoRotationEnabled
+                                AppSettings.autoRotationEnabled = rotationColumn.localAutoRotationEnabled
+                            }
                         }
                     }
                 }
@@ -634,9 +701,12 @@ Rectangle {
 
                 // Manual rotate button
                 Rectangle {
-                    width: parent.width; height: 36; radius: 8
+                    width: parent.width
+                    height: 36
+                    radius: 8
                     color: rotateMa.containsMouse ? "#1A0033" : "#0D0020"
-                    border.color: "#9900FF"; border.width: 1
+                    border.color: "#9900FF"
+                    border.width: 1
                     Behavior on color { ColorAnimation { duration: 100 } }
 
                     Text {
@@ -647,8 +717,23 @@ Rectangle {
                     }
 
                     MouseArea {
-                        id: rotateMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                        onClicked: passwordRotator.rotateNow()
+                        id: rotateMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (typeof passwordRotator !== 'undefined' && passwordRotator) {
+                                passwordRotator.rotateNow()
+                                // Обновляем дату последней ротации
+                                AppSettings.lastRotationDate = new Date().toLocaleString()
+                            } else {
+                                console.log("passwordRotator not available")
+                                testToast.testToastSuccess = false
+                                toastText.text = "✗ Rotation service not available"
+                                testToast.visible = true
+                                toastTimer.restart()
+                            }
+                        }
                     }
                 }
 
@@ -686,6 +771,7 @@ Rectangle {
             MouseArea {
                 id: saveMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                 onClicked: {
+                    // Сохраняем все настройки
                     AppSettings.save()
                     if (recoveryEmailField.text.length > 0)
                         fileManager.saveUserEmail(recoveryEmailField.text)
