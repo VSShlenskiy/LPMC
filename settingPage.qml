@@ -201,8 +201,8 @@ Rectangle {
             MouseArea { id: backMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: stackView.pop() }
         }
 
-        Text { text: "SETTINGS"; color: "#FFFFFF"; anchors { left: backBtn.right; leftMargin: 14; verticalCenter: parent.verticalCenter }; font { family: "Roboto"; pixelSize: 18; bold: true; letterSpacing: 1 } }
-        Text { text: "LPMC"; color: "#9900FF"; anchors { right: parent.right; rightMargin: 28; verticalCenter: parent.verticalCenter }; font { family: "Roboto"; pixelSize: 18; bold: true } }
+        Text { text: "SETTINGS"; color: "#FFFFFF"; anchors { left: backBtn.right; leftMargin: 14; verticalCenter: parent.verticalCenter } font { family: "Roboto"; pixelSize: 18; bold: true; letterSpacing: 1 } }
+        Text { text: "LPMC"; color: "#9900FF"; anchors { right: parent.right; rightMargin: 28; verticalCenter: parent.verticalCenter } font { family: "Roboto"; pixelSize: 18; bold: true } }
     }
 
     // ── Three-column layout ───────────────────────────────────────────────────
@@ -222,7 +222,7 @@ Rectangle {
                 anchors { top: parent.top; left: parent.left; right: parent.right; margins: 18 }
                 spacing: 12
 
-                Row { spacing: 8; Text { text: "\uD83C\uDF10"; font.pixelSize: 18 }; Text { text: "Language"; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 15; bold: true }; anchors.verticalCenter: parent.verticalCenter } }
+                Row { spacing: 8; Text { text: "\uD83C\uDF10"; font.pixelSize: 18 } Text { text: "Language"; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 15; bold: true } anchors.verticalCenter: parent.verticalCenter } }
                 Text { text: "Interface language"; color: "#555555"; font { family: "Roboto"; pixelSize: 11 } }
                 Rectangle { width: parent.width; height: 1; color: "#1E1E1E" }
 
@@ -238,7 +238,7 @@ Rectangle {
                         Behavior on color { ColorAnimation { duration: 120 } }
                         Rectangle { width: 3; height: 20; radius: 2; color: "#9900FF"; visible: settingsPageRoot.selectedLanguage === modelData.code; anchors { left: parent.left; leftMargin: 4; verticalCenter: parent.verticalCenter } }
                         Text { text: modelData.flag; font.pixelSize: 16; anchors { left: parent.left; leftMargin: 12; verticalCenter: parent.verticalCenter } }
-                        Text { text: modelData.label; color: settingsPageRoot.selectedLanguage === modelData.code ? "#FFFFFF" : "#AAAAAA"; font { family: "Roboto"; pixelSize: 13 }; anchors { left: parent.left; leftMargin: 42; verticalCenter: parent.verticalCenter } }
+                        Text { text: modelData.label; color: settingsPageRoot.selectedLanguage === modelData.code ? "#FFFFFF" : "#AAAAAA"; font { family: "Roboto"; pixelSize: 13 } anchors { left: parent.left; leftMargin: 42; verticalCenter: parent.verticalCenter } }
                         Text { text: "\u2713"; color: "#9900FF"; font.pixelSize: 13; visible: settingsPageRoot.selectedLanguage === modelData.code; anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter } }
                         MouseArea { id: langMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: settingsPageRoot.selectedLanguage = modelData.code }
                     }
@@ -254,7 +254,7 @@ Rectangle {
                 anchors { top: parent.top; left: parent.left; right: parent.right; margins: 18 }
                 spacing: 12
 
-                Row { spacing: 8; Text { text: "\uD83C\uDFA8"; font.pixelSize: 18 }; Text { text: "Theme"; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 15; bold: true }; anchors.verticalCenter: parent.verticalCenter } }
+                Row { spacing: 8; Text { text: "\uD83C\uDFA8"; font.pixelSize: 18 } Text { text: "Theme"; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 15; bold: true } anchors.verticalCenter: parent.verticalCenter } }
                 Text { text: "Color theme"; color: "#555555"; font { family: "Roboto"; pixelSize: 11 } }
                 Rectangle { width: parent.width; height: 1; color: "#1E1E1E" }
 
@@ -274,7 +274,7 @@ Rectangle {
                             anchors { left: parent.left; leftMargin: 12; verticalCenter: parent.verticalCenter }
                             Repeater { model: modelData.swatches; Rectangle { width: 16; height: 16; radius: 3; color: modelData; border.color: "#333333"; border.width: 1 } }
                         }
-                        Text { text: modelData.label; color: settingsPageRoot.selectedTheme === modelData.code ? "#FFFFFF" : "#AAAAAA"; font { family: "Roboto"; pixelSize: 13 }; anchors { left: swatchRow.right; leftMargin: 10; verticalCenter: parent.verticalCenter } }
+                        Text { text: modelData.label; color: settingsPageRoot.selectedTheme === modelData.code ? "#FFFFFF" : "#AAAAAA"; font { family: "Roboto"; pixelSize: 13 } anchors { left: swatchRow.right; leftMargin: 10; verticalCenter: parent.verticalCenter } }
                         Text { text: "\u2713"; color: "#9900FF"; font.pixelSize: 13; visible: settingsPageRoot.selectedTheme === modelData.code; anchors { right: parent.right; rightMargin: 12; verticalCenter: parent.verticalCenter } }
                         MouseArea { id: themeMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: settingsPageRoot.selectedTheme = modelData.code }
                     }
@@ -300,7 +300,7 @@ Rectangle {
                     spacing: 12
 
                     // ── Email Recovery ────────────────────────────────────────
-                    Row { spacing: 8; Text { text: "✉"; font.pixelSize: 18; color: "#9900FF" }; Text { text: "Email Recovery"; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 15; bold: true }; anchors.verticalCenter: parent.verticalCenter } }
+                    Row { spacing: 8; Text { text: "✉"; font.pixelSize: 18; color: "#9900FF" } Text { text: "Email Recovery"; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 15; bold: true } anchors.verticalCenter: parent.verticalCenter } }
                     Text { text: "Send master password to your email"; color: "#555555"; font { family: "Roboto"; pixelSize: 11 } }
                     Rectangle { width: parent.width; height: 1; color: "#1E1E1E" }
 
@@ -324,7 +324,7 @@ Rectangle {
                                 spacing: 6
                                 Column {
                                     width: parent.width - 60; anchors.verticalCenter: parent.verticalCenter
-                                    Text { text: model.domain; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 12; bold: true }; elide: Text.ElideRight; width: parent.width }
+                                    Text { text: model.domain; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 12; bold: true } elide: Text.ElideRight; width: parent.width }
                                     Text { text: model.masked; color: "#555555"; font { family: "Roboto"; pixelSize: 11 } }
                                 }
                                 Rectangle {
@@ -353,11 +353,11 @@ Rectangle {
                         width: parent.width; height: 36; radius: 8
                         color: addPwdMa.containsMouse ? "#1A0033" : "#0D0020"; border.color: "#9900FF"; border.width: 1
                         Behavior on color { ColorAnimation { duration: 100 } }
-                        Row { anchors.centerIn: parent; spacing: 6; Text { text: "+"; color: "#9900FF"; font { pixelSize: 16; bold: true }; anchors.verticalCenter: parent.verticalCenter }; Text { text: "Add App Password"; color: "#9900FF"; font { family: "Roboto"; pixelSize: 12; bold: true }; anchors.verticalCenter: parent.verticalCenter } }
+                        Row { anchors.centerIn: parent; spacing: 6; Text { text: "+"; color: "#9900FF"; font { pixelSize: 16; bold: true } anchors.verticalCenter: parent.verticalCenter } Text { text: "Add App Password"; color: "#9900FF"; font { family: "Roboto"; pixelSize: 12; bold: true } anchors.verticalCenter: parent.verticalCenter } }
                         MouseArea { id: addPwdMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { addPwdOverlay.editDomain = ""; addPwdOverlay.isCustom = false; appPwdField.text = ""; addPwdOverlay.visible = true } }
                     }
 
-                    Text { text: "App passwords are encrypted and stored locally."; color: "#444444"; font { family: "Roboto"; pixelSize: 10; italic: true }; wrapMode: Text.WordWrap; width: parent.width }
+                    Text { text: "App passwords are encrypted and stored locally."; color: "#444444"; font { family: "Roboto"; pixelSize: 10; italic: true } wrapMode: Text.WordWrap; width: parent.width }
 
                     // ── Auto Password Rotation ────────────────────────────────
                     Rectangle { width: parent.width; height: 1; color: "#1E1E1E" }
@@ -365,7 +365,7 @@ Rectangle {
                     Row {
                         spacing: 8
                         Text { text: "🔁"; font.pixelSize: 18 }
-                        Text { text: "Auto Password Rotation"; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 14; bold: true }; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: "Auto Password Rotation"; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 14; bold: true } anchors.verticalCenter: parent.verticalCenter }
                     }
 
                     Text { text: "Rotation interval"; color: "#AAAAAA"; font { family: "Roboto"; pixelSize: 11; bold: true } }
@@ -393,7 +393,7 @@ Rectangle {
                     // Свой интервал
                     Row {
                         spacing: 8; width: parent.width
-                        Text { text: "Custom:"; color: "#AAAAAA"; font { family: "Roboto"; pixelSize: 11 }; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: "Custom:"; color: "#AAAAAA"; font { family: "Roboto"; pixelSize: 11 } anchors.verticalCenter: parent.verticalCenter }
                         TextField {
                             id: customDaysField; placeholderText: "N"; width: 54; height: 28
                             inputMethodHints: Qt.ImhDigitsOnly; validator: IntValidator { bottom: 1; top: 365 }
@@ -401,7 +401,7 @@ Rectangle {
                             color: "#FFFFFF"; placeholderTextColor: "#555555"; leftPadding: 8; font.pixelSize: 12
                             onTextChanged: { var v = parseInt(text); if (!isNaN(v) && v > 0) settingsPageRoot.rotationDays = v }
                         }
-                        Text { text: "days"; color: "#AAAAAA"; font { family: "Roboto"; pixelSize: 11 }; anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: "days"; color: "#AAAAAA"; font { family: "Roboto"; pixelSize: 11 } anchors.verticalCenter: parent.verticalCenter }
                     }
 
                     // Тоггл вкл/выкл
@@ -443,7 +443,7 @@ Rectangle {
             anchors { right: parent.right; rightMargin: 28; verticalCenter: parent.verticalCenter }
             Behavior on color { ColorAnimation { duration: 120 } }
 
-            Text { text: "SAVE"; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 13; bold: true }; anchors.centerIn: parent }
+            Text { text: "SAVE"; color: "#FFFFFF"; font { family: "Roboto"; pixelSize: 13; bold: true } anchors.centerIn: parent }
 
             MouseArea {
                 id: saveMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
