@@ -10,6 +10,7 @@ Rectangle {
     property string username:  ""
     property string password:  ""
     property string itemId:    ""   // UUID записи — нужен для rotationManager.rotate()
+    property string category:  ""
     property int    itemIndex: -1
 
     signal deleteRequested(int idx)
@@ -299,7 +300,8 @@ Rectangle {
                         pwdTitle:    root.service,
                         pwdUsername: root.username,
                         pwdPassword: root.password,
-                        pwdWebsite:  root.url
+                        pwdWebsite:  root.url,
+                        pwdCategory: root.category
                     })
                 }
             }

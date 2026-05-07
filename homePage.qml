@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.15
 
 Rectangle {
+    id: homePage_root
     width: 906
     height: 508
     color: "#0A0A0A"
@@ -222,11 +223,21 @@ Rectangle {
                 ListView {
                     id: categoriesList
                     width: parent.width
-                    height: Math.min(count * 44, leftPanel.height - 100)
+                    height: Math.min(count * 36, leftPanel.height - 100)
                     clip: true
                     spacing: 4
-                    
+
                     model: ["General", "Work", "Social", "Banking", "Shopping", "Other"]
+
+                    currentIndex: {
+                        var cats = ["General", "Work", "Social", "Banking", "Shopping", "Other"]
+                        return cats.indexOf(selectedCategory)
+                    }
+
+                    onCurrentIndexChanged: {
+                        if (currentIndex >= 0)
+                            positionViewAtIndex(currentIndex, ListView.Beginning)
+                    }
 
                     delegate: Rectangle {
                         width: categoriesList.width
@@ -342,8 +353,27 @@ Rectangle {
                     width: parent.width
                     height: rightPanel.height - 70
                     clip: true
-                    spacing: 8
+                    spacing: 0
                     model: PasswordModel
+
+                    onModelChanged: passwordList.positionViewAtBeginning()
+
+                    function scrollToFirst() {
+                        for (var i = 0; i < passwordList.count; i++) {
+                            var item = passwordList.itemAtIndex(i)
+                            if (item && item.matchesFilter) {
+                                passwordList.positionViewAtIndex(i, ListView.Beginning)
+                                return
+                            }
+                        }
+                        passwordList.positionViewAtBeginning()
+                    }
+
+                    Connections {
+                        target: homePage_root
+                        function onSelectedCategoryChanged() { passwordList.scrollToFirst() }
+                        function onSearchFilterChanged()     { passwordList.scrollToFirst() }
+                    }
 
                     Text {
                         anchors.centerIn: parent
@@ -367,7 +397,7 @@ Rectangle {
                             && (selectedCategory === "All" || itemCategory === selectedCategory)
 
                         width: passwordList.width
-                        height: matchesFilter ? 66 : 0
+                        height: matchesFilter ? 74 : 0  // 66 + 8 bottom gap
                         clip: true
                         visible: matchesFilter
 
@@ -377,6 +407,8 @@ Rectangle {
                             username: model.username
                             password: model.password
                             url: model.website
+                            itemId: model.itemId
+                            category: model.category || "General"
                             itemIndex: index
 
                             onDeleteRequested: function(idx) {
