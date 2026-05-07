@@ -2,9 +2,9 @@
 #define PASSWORDMODEL_H
 
 #include <QAbstractListModel>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QUuid>
+#include <QVector>
+#include <QString>
+#include <QHash>
 
 struct PasswordItem {
     QString id;
@@ -12,7 +12,7 @@ struct PasswordItem {
     QString username;
     QString password;
     QString website;
-    QString category;
+    QString category = "General";
 };
 
 class PasswordModel : public QAbstractListModel
@@ -21,8 +21,8 @@ class PasswordModel : public QAbstractListModel
 
 public:
     enum Roles {
-        IdRole       = Qt::UserRole,
-        TitleRole    = Qt::UserRole + 1,
+        IdRole = Qt::UserRole,
+        TitleRole = Qt::UserRole + 1,
         UsernameRole,
         PasswordRole,
         WebsiteRole,
@@ -38,19 +38,19 @@ public:
 
     // ── CRUD ─────────────────────────────────────────────────────────────
     Q_INVOKABLE void addPassword(const QString& title,
-                                 const QString& username,
-                                 const QString& password,
-                                 const QString& website,
-                                 const QString& category = "General");
+        const QString& username,
+        const QString& password,
+        const QString& website,
+        const QString& category = "General");
 
     Q_INVOKABLE void removePassword(int index);
 
     Q_INVOKABLE bool updatePasswordFull(const QString& id,
-                                        const QString& title,
-                                        const QString& username,
-                                        const QString& password,
-                                        const QString& website,
-                                        const QString& category);
+        const QString& title,
+        const QString& username,
+        const QString& password,
+        const QString& website,
+        const QString& category);
 
     // ── Сериализация ─────────────────────────────────────────────────────
     Q_INVOKABLE QString toJson() const;
@@ -63,8 +63,11 @@ public:
     Q_INVOKABLE QString getPassword(const QString& id) const;
     Q_INVOKABLE int     indexById(const QString& id) const;
 
+    // ── Категории ──────────────────────────────────────────────────────────
+    Q_INVOKABLE int countByCategory(const QString& category) const;
+
 private:
-    QList<PasswordItem> items;
+    QVector<PasswordItem> items;
 };
 
 #endif // PASSWORDMODEL_H

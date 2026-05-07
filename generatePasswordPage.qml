@@ -237,6 +237,7 @@ Rectangle {
                         width: parent.width
                         height: 44
                         model: ["General", "Work", "Social", "Banking", "Shopping", "Other"]
+                        currentIndex: 0  // Default to "General"
 
                         background: Rectangle {
                             color: "#1E1E1E"; radius: 8
@@ -361,14 +362,22 @@ Rectangle {
                         onClicked: {
                             errorText.text = ""
 
+                            // Получаем выбранную категорию
+                            var selectedCategory = categoryCombo.currentText || "General"
+                            console.log("Saving with category:", selectedCategory)
+
+                            // Передаем категорию в addPassword
                             PasswordModel.addPassword(
                                 titleField.text.trim(),
                                 usernameField.text.trim(),
                                 passwordField.text,
-                                websiteField.text.trim()
+                                websiteField.text.trim(),
+                                selectedCategory  // Передаем категорию пятым параметром
                             )
 
                             var json = PasswordModel.toJson()
+                            console.log("JSON to save:", json)
+                            
                             if (fileManager.savePasswords(json)) {
                                 stackView.pop()
                             } else {

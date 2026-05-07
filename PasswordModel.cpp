@@ -4,10 +4,12 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QUuid>
+#include <QDebug>
 
 PasswordModel::PasswordModel(QObject* parent)
     : QAbstractListModel(parent)
-{}
+{
+}
 
 // ── QAbstractListModel interface ──────────────────────────────────────────────
 
@@ -30,7 +32,7 @@ QVariant PasswordModel::data(const QModelIndex& index, int role) const
     case UsernameRole: return item.username;
     case PasswordRole: return item.password;
     case WebsiteRole:  return item.website;
-    case CategoryRole: return item.category;
+    case CategoryRole: return item.category.isEmpty() ? "General" : item.category;
     default:           return {};
     }
 }
@@ -38,11 +40,11 @@ QVariant PasswordModel::data(const QModelIndex& index, int role) const
 QHash<int, QByteArray> PasswordModel::roleNames() const
 {
     QHash<int, QByteArray> hash;
-    hash[IdRole]       = "itemId";
-    hash[TitleRole]    = "title";
+    hash[IdRole] = "itemId";
+    hash[TitleRole] = "title";
     hash[UsernameRole] = "username";
     hash[PasswordRole] = "password";
-    hash[WebsiteRole]  = "website";
+    hash[WebsiteRole] = "website";
     hash[CategoryRole] = "category";
     return hash;
 }
@@ -50,18 +52,25 @@ QHash<int, QByteArray> PasswordModel::roleNames() const
 // ── CRUD ──────────────────────────────────────────────────────────────────────
 
 void PasswordModel::addPassword(const QString& title,
-                                const QString& username,
-                                const QString& password,
-                                const QString& website,
-                                const QString& category)
+    const QString& username,
+    const QString& password,
+    const QString& website,
+    const QString& category)
 {
     PasswordItem item;
-    item.id       = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    item.title    = title;
+    item.id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    item.title = title;
     item.username = username;
     item.password = password;
-    item.website  = website;
-    item.category = category;
+    item.website = website;
+
+    // Убедимся, что категория не пустая
+    if (category.isEmpty() || category.isNull()) {
+        item.category = "General";
+    }
+    else {
+        item.category = category;
+    }
 
     beginInsertRows(QModelIndex(), items.size(), items.size());
     items.append(item);
@@ -78,20 +87,27 @@ void PasswordModel::removePassword(int index)
 }
 
 bool PasswordModel::updatePasswordFull(const QString& id,
-                                       const QString& title,
-                                       const QString& username,
-                                       const QString& password,
-                                       const QString& website,
-                                       const QString& category)
+    const QString& title,
+    const QString& username,
+    const QString& password,
+    const QString& website,
+    const QString& category)
 {
     int idx = indexById(id);
     if (idx < 0) return false;
 
-    items[idx].title    = title;
+    items[idx].title = title;
     items[idx].username = username;
     items[idx].password = password;
-    items[idx].website  = website;
-    items[idx].category = category;
+    items[idx].website = website;
+
+    // Обновляем категорию
+    if (!category.isEmpty() && !category.isNull()) {
+        items[idx].category = category;
+    }
+    else if (items[idx].category.isEmpty()) {
+        items[idx].category = "General";
+    }
 
     QModelIndex mi = index(idx);
     emit dataChanged(mi, mi, { TitleRole, UsernameRole, PasswordRole, WebsiteRole, CategoryRole });
@@ -105,12 +121,12 @@ QString PasswordModel::toJson() const
     QJsonArray arr;
     for (const PasswordItem& item : items) {
         QJsonObject obj;
-        obj["id"]       = item.id;
-        obj["title"]    = item.title;
+        obj["id"] = item.id;
+        obj["title"] = item.title;
         obj["username"] = item.username;
         obj["password"] = item.password;
-        obj["website"]  = item.website;
-        obj["category"] = item.category;
+        obj["website"] = item.website;
+        obj["category"] = item.category.isEmpty() ? "General" : item.category;
         arr.append(obj);
     }
     return QString::fromUtf8(QJsonDocument(arr).toJson(QJsonDocument::Compact));
@@ -120,7 +136,9 @@ void PasswordModel::fromJson(const QString& jsonStr)
 {
     QJsonParseError err;
     QJsonDocument doc = QJsonDocument::fromJson(jsonStr.toUtf8(), &err);
-    if (err.error != QJsonParseError::NoError || !doc.isArray()) return;
+    if (err.error != QJsonParseError::NoError || !doc.isArray()) {
+        return;
+    }
 
     beginResetModel();
     items.clear();
@@ -134,11 +152,15 @@ void PasswordModel::fromJson(const QString& jsonStr)
         if (item.id.isEmpty())
             item.id = QUuid::createUuid().toString(QUuid::WithoutBraces);
 
-        item.title    = obj["title"].toString();
+        item.title = obj["title"].toString();
         item.username = obj["username"].toString();
         item.password = obj["password"].toString();
-        item.website  = obj["website"].toString();
-        item.category = obj["category"].toString("General");
+        item.website = obj["website"].toString();
+
+        // Важно: правильно загружаем категорию
+        QString category = obj["category"].toString();
+        item.category = category.isEmpty() ? "General" : category;
+
         items.append(item);
     }
 
@@ -177,4 +199,18 @@ int PasswordModel::indexById(const QString& id) const
         if (items[i].id == id) return i;
     }
     return -1;
+}
+
+// ── Категории ──────────────────────────────────────────────────────────────
+
+int PasswordModel::countByCategory(const QString& category) const
+{
+    int count = 0;
+    for (const auto& item : items) {
+        QString itemCategory = item.category.isEmpty() ? "General" : item.category;
+        if (itemCategory == category) {
+            count++;
+        }
+    }
+    return count;
 }
