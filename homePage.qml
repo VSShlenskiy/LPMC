@@ -6,6 +6,9 @@ Rectangle {
     height: 508
     color: "#0A0A0A"
 
+    // ── [НОВОЕ] Строка фильтра — хранит текущий запрос поиска в нижнем регистре
+    property string searchFilter: ""
+
     // ── Top bar ───────────────────────────────────────────────────────────────
     Rectangle {
         id: topBar
@@ -104,9 +107,12 @@ Rectangle {
                     }
 
                     Rectangle {
-                        width: 22; height: 22; radius: 11
+                        width: 22
+                        height: 22
+                        radius: 11
                         color: "#9900FF"
                         anchors { right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
+
                         Text {
                             text: PasswordModel.count()
                             color: "#FFFFFF"
@@ -170,6 +176,9 @@ Rectangle {
                         font.pixelSize: 13
                         clip: true
 
+                        // ── [НОВОЕ] Обновляем фильтр при каждом изменении текста ──
+                        onTextChanged: searchFilter = text.toLowerCase()
+
                         Text {
                             text: "Search passwords..."
                             color: "#444444"
@@ -199,17 +208,33 @@ Rectangle {
                         lineHeight: 1.7
                     }
 
-                    delegate: PasswordItem {
-                        service:   model.title
-                        username:  model.username
-                        password:  model.password
-                        url:       model.website
-                        itemId:    model.itemId   // нужен для EditPassword и rotationManager
-                        itemIndex: index
+                    // ── [НОВОЕ] Делегат обёрнут в Item для фильтрации по высоте ──
+                    delegate: Item {
+                        // Проверяем: содержит ли title (в нижнем регистре) строку поиска.
+                        // indexOf("") всегда >= 0, поэтому при пустом поле видны все записи.
+                        property bool matchesFilter: model.title.toLowerCase().indexOf(searchFilter) >= 0
 
-                        onDeleteRequested: function(idx) {
-                            PasswordModel.removePassword(idx)
-                            fileManager.savePasswords(PasswordModel.toJson())
+                        width: passwordList.width
+                        // При несовпадении схлопываем высоту до 0 — убирает пустые "дыры" в списке
+                        height: matchesFilter ? 66 : 0
+                        // clip обрезает содержимое PasswordItem при height: 0
+                        clip: true
+                        visible: matchesFilter
+
+                        PasswordItem {
+                            width: parent.width
+                            service: model.title
+                            username: model.username
+                            password: model.password
+                            url: model.website
+                            // itemIndex указывает на реальный индекс в PasswordModel —
+                            // удаление работает корректно вне зависимости от фильтра
+                            itemIndex: index
+
+                            onDeleteRequested: function(idx) {
+                                PasswordModel.removePassword(idx)
+                                fileManager.savePasswords(PasswordModel.toJson())
+                            }
                         }
                     }
                 }
