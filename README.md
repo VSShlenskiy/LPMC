@@ -1,12 +1,20 @@
 # LPMC (Local Password Manager) 🔐
 
-**LPMC** — это кроссплатформенный локальный менеджер паролей с графическим интерфейсом, написанный на **C++** и **QML** (фреймворк Qt). Приложение позволяет безопасно хранить ваши учетные записи, защищая их мастер-паролем, а также генерировать новые надежные пароли.
+<div align="center">
+<img alt="uml" src="https://img.shields.io/badge/C%2B%2B-17-blue?style=for-the-badge&logo=cplusplus" />
+<img alt="uml" src="https://img.shields.io/badge/Qt-6-green?style=for-the-badge&logo=qt" />
+<img alt="uml" src="https://img.shields.io/badge/OpenSSL-AES--256--GCM-orange?style=for-the-badge" />
+<img alt="uml" src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?style=for-the-badge" />
+  
+LPMC — кроссплатформенный локальный менеджер паролей с современным QML-интерфейсом.
+Все данные хранятся на вашем устройстве, зашифрованные с помощью AES-256-GCM.
+</div>
 
 ---
 | Функции | Статус |
 | --- | --- |
 | Сделать автозамену паролей | ✔ |
-| Реализовать редактирование созраненных паролей|✔|
+| Реализовать редактирование сохраненных паролей|✔|
 | Сделать разыне стили|❌ |
 | Автозапуск/уход программы в трей |❌|
 | Сделать кнопку показа паролей/копирование|✔|
