@@ -46,80 +46,80 @@ LPMC — кроссплатформенный локальный менедже�
 
 Настройки приложения	Страница с настройками (возможно, тема, автозапуск).	settingPage.qml, AppSettings.cpp / .h
 
-2. UML-диаграммы с разъяснением реализованных классов
-<img width="3132" height="2699" alt="uml" src="https://github.com/user-attachments/assets/fd17c7c0-feb0-4c7b-ba3d-c1d480fad211" />
-2.2 Разъяснение классов
-PasswordModel (C++):
+**Архитектура проекта**
+Проект построен по паттерну Model-View из экосистемы Qt. QML-слой отвечает исключительно за отображение и анимации, не содержа бизнес-логики. C++ классы предоставляют данные и функциональность через механизмы Q_INVOKABLE и Q_PROPERTY, зарегистрированные в контексте QML-движка при старте приложения.
 
-Назначение: Мост между C++-хранилищем данных и QML-представлением.
+**UML-диаграммы классов**
+Общая диаграмма зависимостей
+На диаграмме показано, как main.cpp создаёт четыре C++ объекта и передаёт их в QML-движок, а также как классы связаны между собой через зависимости и агрегацию.
+<img width="900" height="640" alt="uml_overview" src="https://github.com/user-attachments/assets/87f01e66-37c3-4dbb-a4a9-3b31ddd123cc" />
+**PasswordItem**
+PasswordItem — простая структура (POD — Plain Old Data), описывающая одну запись в хранилище. Не является QObject, поэтому не имеет сигналов, слотов и не регистрируется в Qt Meta-Object System. Используется только внутри PasswordModel как элемент QList<PasswordItem>.
+<img width="500" height="220" alt="uml_password_item" src="https://github.com/user-attachments/assets/218a44d8-a454-4084-9f23-27484d8313f8" />
+Данные в QML передаются не напрямую через структуру, а через механизм ролей (RoleNames) в PasswordModel. Когда ListView обращается к model.title, Qt под капотом вызывает data(index, TitleRole).
+**PasswordModel**
+Центральный класс приложения. Наследует QAbstractListModel и является мостом между QList<PasswordItem> и QML ListView. Отвечает за CRUD-операции над записями и сериализацию данных в JSON.
+<img width="640" height="680" alt="uml_password_model" src="https://github.com/user-attachments/assets/5e317f18-953b-49ef-87d3-fd28553352cb" />
+QAbstractListModel требует реализации трёх виртуальных методов: rowCount() (число строк), data() (значение по индексу и роли) и roleNames() (маппинг числовых ролей на строковые имена для QML). addPassword и removePassword обёрнуты в beginInsertRows/endInsertRows и beginRemoveRows/endRemoveRows — это автоматически уведомляет View об изменениях без ручных вызовов обновления.
+**FileManager**
+Отвечает за все операции с файловой системой: хранение, шифрование AES-256-GCM через OpenSSL EVP API, скрытие файлов атрибутом HIDDEN на Windows. Полностью реализован в заголовочном файле.
+<img width="700" height="820" alt="uml_file_manager" src="https://github.com/user-attachments/assets/3543dfcf-fbe0-41ba-bb6b-a855ac9bdcd4" />
+Формат .dat файла: [IV — 12 байт][TAG — 16 байт][зашифрованные данные]. GCM (Galois/Counter Mode) обеспечивает не только конфиденциальность, но и целостность — любое изменение файла приведёт к отказу расшифровки. При каждой операции файлы скрываются через Win32 API SetFileAttributesW. Метод migrateFromOldLocation() обеспечивает обратную совместимость при обновлении приложения.
+**EmailSender + SmtpConfig**
+Реализует восстановление доступа через электронную почту, напрямую взаимодействуя с SMTP-серверами через сокеты Qt. Поддерживает два режима: implicit TLS (порт 465) и STARTTLS (порт 587).
+<img width="700" height="860" alt="uml_email_sender" src="https://github.com/user-attachments/assets/477a5fa1-02c8-43dc-9f5f-a7e09f6dda93" />
+detectSmtp() ищет домен отправителя в статической таблице известных SMTP-провайдеров (Gmail, Yandex, Mail.ru и другие). Если домен найден — конфигурация применяется автоматически; иначе используется setManualSmtp(). Отправка асинхронна: результат возвращается через сигналы emailSent() или emailFailed(). Приложение-пароль (App Password) хранится в FileManager в зашифрованном виде, а не в оперативной памяти процесса.
 
-Роль: Наследует QAbstractListModel, предоставляя данные для ListView в homePage.qml. Управляет CRUD-операциями над записями паролей.
+**Принцип работы:**
 
-Ключевые методы: data(), rowCount(), addPassword(), removePassword().
+Запуск
+main.cpp создаёт QQmlApplicationEngine, инстанцирует все четыре C++ объекта и регистрирует их как свойства корневого контекста. После этого загружается main.qml, который через fileManager.isMasterPasswordSet() определяет, показать экран регистрации (regPage.qml) или входа (admission.qml).
+2. Первый запуск — регистрация
+regPage.qml → пользователь создаёт мастер-пароль → fileManager.saveMasterPassword(pwd). Опционально указывается email для восстановления → fileManager.saveUserEmail(email). Оба вызова шифруют данные AES-256-GCM и записывают в скрытые .dat файлы.
+3. Вход
+admission.qml → ввод мастер-пароля → fileManager.verifyMasterPassword(pwd) расшифровывает master.dat и сравнивает хеш. При успехе стек навигации переключается на homePage.qml.
+4. Работа с паролями
+При загрузке главной страницы выполняется passwordModel.fromJson(fileManager.loadPasswords()). ListView автоматически отображает данные из модели. При добавлении или удалении записи изменения сразу сохраняются: fileManager.savePasswords(passwordModel.toJson()). Отдельной кнопки «Сохранить» нет — данные фиксируются немедленно.
+5. Шифрование
+Запись:
+  plaintext → RAND_bytes(IV, 12 байт) → EVP_EncryptInit/Update/Final
+            → [IV (12)][TAG (16)][ciphertext] → SetFileAttributesW(HIDDEN)
 
-FileManager (C++):
+Чтение:
+  файл → [IV][TAG][ciphertext] → EVP_DecryptInit/Update/Final
+       → проверка TAG → plaintext (или ошибка при несовпадении)
+6. Email-восстановление
+emailSender.detectSmtp(email) заполняет SmtpConfig по домену. После ввода App Password (fileManager.saveSmtpAppPassword) вызов sendPasswordRecoveryEmail() выбирает sendViaSsl() (порт 465) или sendViaStartTls() (порт 587) в зависимости от флага ssl конфига. Результат приходит сигналом.
 
-Назначение: Инкапсулирует низкоуровневую работу с файловой системой.
+Ссылки на источники
+Официальная документация Qt
 
-Роль: Отвечает за чтение, запись и, предположительно, шифрование/дешифрование файла базы данных паролей. Реализован как статический класс (набор утилитарных функций).
+The Qt Company. Qt 6 Documentation. — https://doc.qt.io/
+The Qt Company. QAbstractListModel Class. — https://doc.qt.io/qt-6/qabstractlistmodel.html
+The Qt Company. Qt QML — Integrating QML and C++. — https://doc.qt.io/qt-6/qtqml-cppintegration-overview.html
+The Qt Company. The Property System (Q_PROPERTY). — https://doc.qt.io/qt-6/properties.html
+The Qt Company. Qt Network — QSslSocket. — https://doc.qt.io/qt-6/qsslsocket.html
+The Qt Company. Qt Network — QTcpSocket. — https://doc.qt.io/qt-6/qtcpsocket.html
+The Qt Company. Qt Quick. — https://doc.qt.io/qt-6/qtquick-index.html
 
-AppSettings (C++):
+OpenSSL
 
-Назначение: Управление настройками приложения.
+OpenSSL Project. EVP Symmetric Encryption and Decryption. — https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
+OpenSSL Project. EVP Authenticated Encryption and Decryption (GCM). — https://wiki.openssl.org/index.php/EVP_Authenticated_Encryption_and_Decryption
+OpenSSL Project. RAND_bytes. — https://www.openssl.org/docs/man3.0/man3/RAND_bytes.html
 
-Роль: Использует QSettings для сохранения параметров (например, последний открытый аккаунт, настройки генератора паролей, тема интерфейса) в системном реестре или конфигурационном файле.
+Стандарты шифрования
 
-EmailSender (C++):
+NIST. Recommendation for Block Cipher Modes of Operation: GCM. SP 800-38D. — https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
 
-Назначение: Реализация функции восстановления пароля.
+Microsoft / Win32
 
-Роль: Подключается к SMTP-серверу, отправляет на указанный при регистрации email сообщение с кодом восстановления или ссылкой.
+Microsoft. SetFileAttributesW function. — https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfileattributesw
+Microsoft. KNOWNFOLDERID — FOLDERID_LocalAppData. — https://learn.microsoft.com/en-us/windows/win32/shell/knownfolderid
+Microsoft. Visual Studio 2022 Documentation. — https://learn.microsoft.com/en-us/visualstudio/
 
-QML-компоненты (не являются классами C++, но логически завершают архитектуру):
-
-admission.qml – экран входа.
-
-regPage.qml – регистрация (создание первого аккаунта).
-
-homePage.qml – главная страница со списком паролей.
-
-generatePasswordPage.qml – генератор.
-
-TitleBar.qml – кастомный заголовок (кнопки закрыть/свернуть/перемещение окна).
-
-3. Описание используемых инструментов
-Тип	Инструмент	Назначение
-Среда разработки (IDE)	Microsoft Visual Studio (файлы .sln, .vcxproj)	Управление проектом, компиляция, отладка, интеграция с Qt.
-Фреймворк	Qt 5 / Qt 6	Кроссплатформенная библиотека для GUI и бэкенда.
-Язык для GUI	QML / Qt Quick	Декларативный язык для создания современного, анимированного интерфейса.
-Язык бэкенда	C++ (стандарт C++11 или выше)	Реализация бизнес-логики, модели данных, работы с файлами и сетью.
-Программа записи видео	(Не указана в репозитории, но рекомендуется) OBS Studio / Bandicam	Для создания демонстрационного видео работы АРМ.
-Система контроля версий	Git (репозиторий GitHub)	Хранение исходного кода, отслеживание изменений.
-4. Библиотеки, API и другие инструменты
-Категория	Наименование	Назначение в проекте
-Графический фреймворк	QtCore, QtGui, QtQml, QtQuick	Основные модули Qt для работы с QML, событиями, типами данных.
-Модель-представление	QAbstractListModel	Базовый класс для PasswordModel.
-Работа с файлами	QFile, QDataStream	Используются в FileManager.
-Шифрование	(Вероятно) QCryptographicHash (SHA) + пользовательский алгоритм	Для шифрования базы паролей мастер-паролем.
-Сетевые операции	QTcpSocket, QSmtpClient (или самописный)	Используются в EmailSender для отправки почты.
-Настройки	QSettings	Сохранение конфигурации в AppSettings.
-Работа с иконками	.rc файл, icon.ico	Формирование исполняемого файла с иконкой (коммит "add ico").
-Плагин Visual Studio	Qt Visual Studio Tools	Интеграция сборки Qt в MSVC.
-5. Ссылки на используемые источники
-
-Документация Qt: The Qt Company. (2026). Qt 6 Documentation. https://doc.qt.io/
-
-Справочник по QML: The Qt Company. (2026). Qt QML 6. https://doc.qt.io/qt-6/qtqml-index.html
-
-Стандарт C++11: International Organization for Standardization. (2011). *ISO/IEC 14882:2011 Information technology — Programming languages — C++*.
-
-Руководство по QAbstractListModel: Qt Project. (2026). QAbstractListModel Class. https://doc.qt.io/qt-6/qabstractlistmodel.html
-
-Заключение
-В ходе выполнения проекта «Разработка АРМ специалиста» создано приложение LPMC — локальный менеджер паролей с современным интерфейсом на QML и надежным C++ бэкендом. Продукт реализует ключевые функции: безопасное хранение данных под мастер-паролем, генератор сложных паролей и механизм восстановления доступа по email.
-
-Архитектура строится на паттерне «Модель-Представление»: PasswordModel (C++ модель) предоставляет данные для QML-компонентов, а FileManager и EmailSender обеспечивают хранение и дополнительные сервисы. Использование Microsoft Visual Studio в качестве IDE и Qt в качестве фреймворка позволяет поддерживать кроссплатформенность.
-
-В настоящее время проект активно развивается (последние коммиты от 22 апреля 2026 года), часть функций (копирование паролей, уход в трей) находится в стадии разработки. Продукт может быть рекомендован как корпоративное АРМ для специалистов по ИБ или как персональное средство управления паролями.
-
-Исполнитель: [Шаисламов Михаил и Шленский Виталий]
+Авторы
+|Автор|  GitHub|
+|-------|---------|
+|Шаисламов Михаил |@SHMIHAIL|
+|Шленский Виталий| @VSShlenskiy|
