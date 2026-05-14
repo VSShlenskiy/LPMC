@@ -4,7 +4,9 @@
 <img alt="uml" src="https://img.shields.io/badge/C%2B%2B-17-blue?style=for-the-badge&logo=cplusplus" />
 <img alt="uml" src="https://img.shields.io/badge/Qt-6-green?style=for-the-badge&logo=qt" />
 <img alt="uml" src="https://img.shields.io/badge/OpenSSL-AES--256--GCM-orange?style=for-the-badge" />
+
 <img alt="uml" src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?style=for-the-badge" />
+<img alt="uml" src="https://img.shields.io/badge/-JavaScript-333333?style=flat&logo=javascript" />
   
 LPMC — кроссплатформенный локальный менеджер паролей с современным QML-интерфейсом.
 Все данные хранятся на вашем устройстве, зашифрованные с помощью AES-256-GCM.
